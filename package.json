@@ -1,0 +1,26 @@
+{
+  "name": "WanikaniApi",
+  "version": "0.0.0",
+  "description": "A small javascript library to facilitate easier client-only interaction with the Wanikani (http://wanikani.com) API.",
+  "main": "",
+  "scripts": {
+    "build": "tsc src/wkapi.ts -m commonjs -t ES5 --out dist/wkapi.ts --removeComments",
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/takakoshimizu/wanikani-api.git"
+  },
+  "keywords": [
+    "wanikani"
+  ],
+  "author": "Erich Dalton",
+  "license": "GPL3",
+  "bugs": {
+    "url": "https://github.com/takakoshimizu/wanikani-api/issues"
+  },
+  "homepage": "https://github.com/takakoshimizu/wanikani-api",
+  "devDependencies": {
+    "typescript": "~1.5.0-beta"
+  }
+}
