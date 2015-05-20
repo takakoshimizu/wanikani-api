@@ -27,4 +27,5 @@ build/Release
 node_modules
 
 # Intermediary js compilations
-src/*.js
+src/**/*.js
+src/**/*.map

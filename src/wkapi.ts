@@ -1,6 +1,7 @@
 ﻿import { IUserInformation, IStudyQueue} from 'typings/apiTypes';
 import { IWkCache } from 'typings/cacheTypes';
 import { WkCache } from 'wkCache';
+import { convertCase } from 'util/objectConvert';
 
 export class WkApi {
     private cache: IWkCache;
