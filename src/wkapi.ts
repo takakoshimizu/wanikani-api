@@ -1,8 +1,9 @@
-﻿import { IUserInformation, IStudyQueue} from 'apiTypes';
+﻿import { IUserInformation, IStudyQueue} from 'typings/apiTypes';
+import { IWkCache } from 'typings/cacheTypes';
 import { WkCache } from 'wkCache';
 
 export class WkApi {
-    private cache: WkCache;
+    private cache: IWkCache;
 
     constructor(private apiKey: string) {
         // validate apiKey format
@@ -13,7 +14,10 @@ export class WkApi {
         this.cache = new WkCache();
     }
     public userInformation(): IUserInformation {
-        throw 'not yet implemented';
+        var userInfo: IUserInformation = this.cache.getUserInformation();
+        if (userInfo) return userInfo;
+
+        throw 'requests not implemented';
     }
 
     public studyQueue(): IStudyQueue {

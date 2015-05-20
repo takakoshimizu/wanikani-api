@@ -1,5 +1,9 @@
 ﻿import { IUserInformation } from 'apiTypes';
 
+export interface IWkCache {
+    getUserInformation(): IUserInformation;
+}
+
 export interface ICache {
     lastUpdated: number;
 }
