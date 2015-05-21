@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Wanikani JS API by takakoshimizu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Wanikani JS API</h1>
+      <h2 class="project-tagline">A small Javascript Library to handle interaction with Wanikani&#39;s API with no external dependencies.</h2>
+      <a href="https://github.com/takakoshimizu/wanikani-api" class="btn">View on GitHub</a>
+      <a href="https://github.com/takakoshimizu/wanikani-api/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/takakoshimizu/wanikani-api/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="wanikani-api" class="anchor" href="#wanikani-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>wanikani-api</h1>
+
+<p>A small Javascript Library to handle interaction with <a href="https://wanikani.com">Wanikani</a>'s API.</p>
+
+<p>The major idea is to allow simple interaction with the API without handling JSONP yourself, 
+or using any external dependences (except perhaps an ES6 Promise polyfill).</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<h4>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h4>
+
+<p>Download the <code>wkapi.js</code> or <code>wkapi.min.js</code> file from the <code>dist</code> directory. 
+Add that to your code in a script tag, and then instantiate a new instance of the object, 
+passing in the desired API Key as an argument.</p>
+
+<div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">html</span>&gt;
+  &lt;<span class="pl-ent">head</span>&gt;
+<span class="pl-s1">    &lt;<span class="pl-ent">script</span> <span class="pl-e">type</span>=<span class="pl-s"><span class="pl-pds">"</span>text/javascript<span class="pl-pds">"</span></span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>wkapi.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</span>
+<span class="pl-s1">    &lt;<span class="pl-ent">script</span> <span class="pl-e">type</span>=<span class="pl-s"><span class="pl-pds">"</span>text/javascript<span class="pl-pds">"</span></span>&gt;</span>
+<span class="pl-s1">      <span class="pl-k">var</span> wk <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">WkApi</span>(<span class="pl-s"><span class="pl-pds">'</span>API_KEY<span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1">    &lt;/<span class="pl-ent">script</span>&gt;</span>
+  &lt;/<span class="pl-ent">head</span>&gt;
+&lt;/<span class="pl-ent">html</span>&gt;</pre></div>
+
+<p>Once that is done, the WkApi object <code>wk</code> is now available to query.</p>
+
+<h4>
+<a id="querying-wanikani" class="anchor" href="#querying-wanikani" aria-hidden="true"><span class="octicon octicon-link"></span></a>Querying Wanikani</h4>
+
+<p>You can then ask the created object for various information about the Wanikani user. 
+All information is returned wrapped in an ES6 promise. All API response information is 
+normalized from <code>snake_case</code> to <code>camelCase</code> for easier typing and recognition.</p>
+
+<div class="highlight highlight-javascript"><pre>wk.getStudyQueue().then(<span class="pl-k">function</span>(<span class="pl-smi">studyQueue</span>) {
+  <span class="pl-en">console</span><span class="pl-c1">.log</span>(studyQueue.reviewsAvailableNextHour);
+  <span class="pl-en">console</span><span class="pl-c1">.log</span>(studyQueue.nextReviewDate);
+});</pre></div>
+
+<p>Additionally, the WkApi will take care of caching requests for 1 hour by default. 
+If you would like to change this caching time, you may use the <code>setExpiry(number)</code> method 
+of the WkApi class. This number is in seconds.</p>
+
+<div class="highlight highlight-javascript"><pre>wk.setExpiry(<span class="pl-c1">120</span>); <span class="pl-c">// requests will be cached for 2 minutes</span></pre></div>
+
+<p>Lastly, the WkApi will update the <code>userInformation</code> object with every request, as it is included 
+from the server with every request. Requesting, for example, the Study Queue, and then the User 
+Information, will result in the User Information already being available for use.</p>
+
+<h2>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h2>
+
+<p>Coming soon.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/takakoshimizu/wanikani-api">Wanikani JS API</a> is maintained by <a href="https://github.com/takakoshimizu">takakoshimizu</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
+
