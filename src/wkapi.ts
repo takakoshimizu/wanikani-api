@@ -1,22 +1,33 @@
-﻿import { IUserInformation, IStudyQueue} from 'apiTypes';
-import { WkCache } from 'wkCache';
+﻿import { IUserInformation, IStudyQueue} from './typings/apiTypes';
+import { IWkCache } from './typings/cacheTypes';
+import { WkCache } from './wkCache';
 
 export class WkApi {
-    private cache: WkCache;
+    private _cache: IWkCache;
 
-    constructor(private apiKey: string) {
+    constructor(private _apiKey: string) {
         // validate apiKey format
-        if (apiKey.length !== 32 || !apiKey.match(/[A-z0-9]{32}/)) {
+        if (_apiKey.length !== 32 || !_apiKey.match(/[A-z0-9]{32}/)) {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
 
-        this.cache = new WkCache();
+        this._cache = new WkCache(_apiKey);
+        this.setExpiry(120); // testing mode
     }
-    public userInformation(): IUserInformation {
-        throw 'not yet implemented';
+    
+    // Sets the cache expiry time in seconds
+    public setExpiry(time: number): void {
+        this._cache.setExpiry(time);
+    }
+    
+    // Returns the User Information segment cached off
+    // the latest request, wrapped in a Promise
+    public getUserInformation(): Promise<IUserInformation> {
+        return this._cache.getUserInformation();
     }
 
-    public studyQueue(): IStudyQueue {
-        throw 'not yet implemented';
+    // Returns the current user's study queue
+    public getStudyQueue(): Promise<IStudyQueue> {
+        return this._cache.getStudyQueue();
     }
 }

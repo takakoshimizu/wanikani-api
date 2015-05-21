@@ -3,7 +3,9 @@
     requestedInformation: IStudyQueue;
 }
 
-export interface IUserInformation {
+export interface IApiInformation {}
+
+export interface IUserInformation extends IApiInformation {
     username: string;
     gravatar: string;
     level: number;
@@ -17,7 +19,7 @@ export interface IUserInformation {
     vacationDate: number;
 }
 
-export interface IStudyQueue {
+export interface IStudyQueue extends IApiInformation {
     lessonsAvailable: number;
     reviewsAvaialble: number;
     nextReviewDate: number;
