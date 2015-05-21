@@ -1,4 +1,4 @@
-﻿import { IUserInformation, IStudyQueue} from './typings/apiTypes';
+﻿import { IUserInformation, IStudyQueue, ILevelProgress } from './typings/apiTypes';
 import { IWkCache, WkCache } from './wkCache';
 
 export class WkApi {
@@ -28,5 +28,10 @@ export class WkApi {
     // Returns the current user's study queue
     public getStudyQueue(): Promise<IStudyQueue> {
         return this._cache.getStudyQueue();
+    }
+
+    // Returns the current user's level progression
+    public getLevelProgression(): Promise<ILevelProgress> {
+        return this._cache.getLevelProgression();
     }
 }

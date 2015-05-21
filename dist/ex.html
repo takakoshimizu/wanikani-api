@@ -12,6 +12,7 @@
     <div>
         <button id="userInfo">User Information</button>
         <button id="studyQueue">Study Queue</button>
+        <button id="levelProgress">Level Progression</button>
     </div>
 
     <script type="text/javascript">
@@ -25,6 +26,12 @@
 
         document.getElementById('studyQueue').addEventListener('click', function (e) {
             wk.getStudyQueue().then(function (results) {
+                document.getElementById('testInfo').value = JSON.stringify(results);
+            });
+        });
+
+        document.getElementById('levelProgress').addEventListener('click', function (e) {
+            wk.getLevelProgression().then(function (results) {
                 document.getElementById('testInfo').value = JSON.stringify(results);
             });
         });

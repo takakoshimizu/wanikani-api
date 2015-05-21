@@ -66,9 +66,10 @@ exports.convertCase = function (obj) {
 var fetcher_1 = require('./fetcher');
 var WkCache = (function () {
     function WkCache(apiKey) {
-        this._expiryTime = 3000;
+        this._expiryTime = 600;
         this._userInformation = {};
         this._studyQueue = {};
+        this._levelProgress = {};
         this._fetcher = new fetcher_1.Fetcher(apiKey);
     }
     WkCache.prototype.getUserInformation = function () {
@@ -95,6 +96,21 @@ var WkCache = (function () {
             var data = _this._fetcher.getData('study-queue');
             data.then(function (value) {
                 _this.setCacheItem(_this._studyQueue, value);
+                resolve(value.requestedInformation);
+            }).catch(function () {
+                reject();
+            });
+        });
+    };
+    WkCache.prototype.getLevelProgression = function () {
+        var _this = this;
+        if (this.isValid(this._levelProgress)) {
+            return Promise.resolve(this._levelProgress.data);
+        }
+        return new Promise(function (resolve, reject) {
+            var data = _this._fetcher.getData('level-progression');
+            data.then(function (value) {
+                _this.setCacheItem(_this._levelProgress, value);
                 resolve(value.requestedInformation);
             }).catch(function () {
                 reject();
@@ -151,6 +167,9 @@ var WkApi = (function () {
     };
     WkApi.prototype.getStudyQueue = function () {
         return this._cache.getStudyQueue();
+    };
+    WkApi.prototype.getLevelProgression = function () {
+        return this._cache.getLevelProgression();
     };
     return WkApi;
 })();

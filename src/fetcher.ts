@@ -14,8 +14,8 @@ export class Fetcher implements IFetcher {
 	
 	// Gets an API URL with the /type/ and optionally a limit.
 	// Returns a promise that will contain the requested data.
-	public getData(type: string, limit?: number): Promise<IApiResponse> {
-		return jsonp<IApiResponse>(this.constructUrl(type, limit));
+	public getData<T>(type: string, limit?: number): Promise<T> {
+		return jsonp<T>(this.constructUrl(type, limit));
 	}
 	
 	// Constructs an API URL to access the requested data.

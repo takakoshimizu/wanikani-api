@@ -1,6 +1,6 @@
-﻿export interface IApiResponse {
+﻿export interface IApiResponse<T> {
     userInformation: IUserInformation;
-    requestedInformation: IStudyQueue;
+    requestedInformation: T;
 }
 
 export interface IApiInformation {}
@@ -25,4 +25,11 @@ export interface IStudyQueue extends IApiInformation {
     nextReviewDate: number;
     reviewsAvailableNextHour: number;
     reviewsAvailableNextDay: number;
+}
+
+export interface ILevelProgress extends IApiInformation {
+    radicalsProgress: number;
+    radicalsTotal: number;
+    kanjiProgress: number;
+    kanjiTotal: number;
 }
