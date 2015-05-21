@@ -37,7 +37,7 @@ wk.getStudyQueue().then(function(studyQueue) {
 });
 ```
 
-Additionally, the WkApi will take care of caching requests for ten minutes by default. 
+Additionally, the WkApi will take care of caching requests for 1 hour by default. 
 If you would like to change this caching time, you may use the `setExpiry(number)` method 
 of the WkApi class. This number is in seconds.
 

@@ -33,3 +33,18 @@ export interface ILevelProgress extends IApiInformation {
     kanjiProgress: number;
     kanjiTotal: number;
 }
+
+export interface ISRSDistributionItem {
+    radicals: number;
+    kanji: number;
+    vocabulary: number;
+    total: number;
+}
+
+export interface ISRSDistribution extends IApiInformation {
+    apprentice: ISRSDistributionItem;
+    guru: ISRSDistributionItem;
+    master: ISRSDistributionItem;
+    enlighten: ISRSDistributionItem;
+    burned: ISRSDistributionItem;
+}

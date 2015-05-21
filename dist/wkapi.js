@@ -66,11 +66,13 @@ exports.convertCase = function (obj) {
 var fetcher_1 = require('./fetcher');
 var WkCache = (function () {
     function WkCache(apiKey) {
-        this._expiryTime = 600;
+        this._expiryTime = 3600;
         this._userInformation = {};
         this._studyQueue = {};
         this._levelProgress = {};
-        this.storageKeys = ['_userInformation', '_studyQueue', '_levelProgress'];
+        this._srsDistribution = {};
+        this.storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
+            '_srsDistribution'];
         this._fetcher = new fetcher_1.Fetcher(apiKey);
         if (window.localStorage) {
             this.loadLocalStorage();
@@ -115,6 +117,21 @@ var WkCache = (function () {
             var data = _this._fetcher.getData('level-progression');
             data.then(function (value) {
                 _this.setCacheItem(_this._levelProgress, value);
+                resolve(value.requestedInformation);
+            }).catch(function () {
+                reject();
+            });
+        });
+    };
+    WkCache.prototype.getSrsDistribution = function () {
+        var _this = this;
+        if (this.isValid(this._srsDistribution)) {
+            return Promise.resolve(this._srsDistribution.data);
+        }
+        return new Promise(function (resolve, reject) {
+            var data = _this._fetcher.getData('srs-distribution');
+            data.then(function (value) {
+                _this.setCacheItem(_this._srsDistribution, value);
                 resolve(value.requestedInformation);
             }).catch(function () {
                 reject();
@@ -181,7 +198,6 @@ var WkApi = (function () {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
         this._cache = new wkCache_1.WkCache(_apiKey);
-        this.setExpiry(120);
     }
     WkApi.prototype.setExpiry = function (time) {
         this._cache.setExpiry(time);
@@ -194,6 +210,9 @@ var WkApi = (function () {
     };
     WkApi.prototype.getLevelProgression = function () {
         return this._cache.getLevelProgression();
+    };
+    WkApi.prototype.getSrsDistribution = function () {
+        return this._cache.getSrsDistribution();
     };
     return WkApi;
 })();

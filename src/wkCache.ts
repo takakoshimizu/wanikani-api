@@ -2,7 +2,7 @@
 
 import {
     IApiResponse, IApiInformation, IUserInformation,
-    IStudyQueue, ILevelProgress } from './typings/apiTypes';
+    IStudyQueue, ILevelProgress, ISRSDistribution } from './typings/apiTypes';
 import { IFetcher, Fetcher } from './fetcher';
 
 interface ICache<T> {
@@ -14,17 +14,20 @@ export interface IWkCache {
     getUserInformation(): Promise<IUserInformation>;
     getStudyQueue(): Promise<IStudyQueue>;
     getLevelProgression(): Promise<ILevelProgress>;
+    getSrsDistribution(): Promise<ISRSDistribution>;
     setExpiry(time: number): void;
 }
 
 export class WkCache implements IWkCache {
     private _fetcher: IFetcher;
-    private _expiryTime: number = 600; // seconds
+    private _expiryTime: number = 3600; // seconds
     private _userInformation: ICache<IUserInformation> = <ICache<IUserInformation>> {};
     private _studyQueue: ICache<IStudyQueue> = <ICache<IStudyQueue>> {};
     private _levelProgress: ICache<ILevelProgress> = <ICache<ILevelProgress>> {};
+    private _srsDistribution: ICache<ISRSDistribution> = <ICache<ISRSDistribution>> {};
 
-    private storageKeys = ['_userInformation', '_studyQueue', '_levelProgress'];
+    private storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
+                            '_srsDistribution'];
     
     constructor(apiKey: string) {
         this._fetcher = new Fetcher(apiKey);
@@ -79,6 +82,23 @@ export class WkCache implements IWkCache {
             let data = this._fetcher.getData<IApiResponse<ILevelProgress>>('level-progression');
             data.then((value: IApiResponse<ILevelProgress>) => {
                 this.setCacheItem(this._levelProgress, value);
+                resolve(value.requestedInformation);
+            }).catch(() => {
+                reject();
+            });
+        });
+    }
+
+    // Returns the cached SRS Distribution in a promise if still valid.
+    // Otherwise returns a promise containing the incoming information.
+    public getSrsDistribution(): Promise<ISRSDistribution> {
+        if (this.isValid(this._srsDistribution)) {
+            return Promise.resolve<ISRSDistribution>(this._srsDistribution.data);
+        }
+        return new Promise<ISRSDistribution>((resolve, reject) => {
+            let data = this._fetcher.getData<IApiResponse<ISRSDistribution>>('srs-distribution');
+            data.then((value: IApiResponse<ISRSDistribution>) => {
+                this.setCacheItem(this._srsDistribution, value);
                 resolve(value.requestedInformation);
             }).catch(() => {
                 reject();

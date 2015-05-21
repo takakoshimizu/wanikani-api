@@ -1,4 +1,6 @@
-﻿import { IUserInformation, IStudyQueue, ILevelProgress } from './typings/apiTypes';
+﻿import {
+    IUserInformation, IStudyQueue, ILevelProgress,
+    ISRSDistribution } from './typings/apiTypes';
 import { IWkCache, WkCache } from './wkCache';
 
 export class WkApi {
@@ -11,7 +13,6 @@ export class WkApi {
         }
 
         this._cache = new WkCache(_apiKey);
-        this.setExpiry(120); // testing mode
     }
     
     // Sets the cache expiry time in seconds
@@ -33,5 +34,10 @@ export class WkApi {
     // Returns the current user's level progression
     public getLevelProgression(): Promise<ILevelProgress> {
         return this._cache.getLevelProgression();
+    }
+
+    // returns the current user's SRS distribution
+    public getSrsDistribution(): Promise<ISRSDistribution> {
+        return this._cache.getSrsDistribution();
     }
 }
