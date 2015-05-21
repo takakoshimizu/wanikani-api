@@ -1,9 +1,18 @@
 <!doctype html>
 <html>
-	<head>
-		<script type="text/javascript" src="wkapi.js"></script>
-	</head>
-	<body>
-		
-	</body>
+<head>
+    <script type="text/javascript" src="wkapi.js"></script>
+</head>
+<body>
+    <textarea id="testInfo" rows="5" cols="150">
+        Test info will populate here
+    </textarea>
+
+    <script type="text/javascript">
+        var wk = new WkApi('INSERT_KEY_HERE');
+        wk.userInformation().then(function (results) {
+            document.getElementById('testInfo').value = JSON.stringify(results);
+        });
+    </script>
+</body>
 </html>

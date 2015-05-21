@@ -29,3 +29,6 @@ node_modules
 # Intermediary js compilations
 src/**/*.js
 src/**/*.map
+
+# test file with my key
+dist/ex_withkey.html
