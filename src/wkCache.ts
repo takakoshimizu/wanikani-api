@@ -23,9 +23,16 @@ export class WkCache implements IWkCache {
     private _userInformation: ICache<IUserInformation> = <ICache<IUserInformation>> {};
     private _studyQueue: ICache<IStudyQueue> = <ICache<IStudyQueue>> {};
     private _levelProgress: ICache<ILevelProgress> = <ICache<ILevelProgress>> {};
+
+    private storageKeys = ['_userInformation', '_studyQueue', '_levelProgress'];
     
     constructor(apiKey: string) {
         this._fetcher = new Fetcher(apiKey);
+
+        // load from local storage, if available
+        if (window.localStorage) {
+            this.loadLocalStorage();
+        }
     }
     
     // Returns the cached user information in a promise if still valid.
@@ -97,6 +104,31 @@ export class WkCache implements IWkCache {
                 lastUpdated: this.getTime()
             };
         }
+
+        this.persistLocalStorage();
+    }
+
+    // Loads all persisted information from localStorage
+    private loadLocalStorage() {
+        for (let key of this.storageKeys) {
+            if (window.localStorage.getItem(key)) {
+                (<any>this)[key] = JSON.parse(window.localStorage.getItem(key));
+            }
+        }
+    }
+
+    // Persists all information to localStorage
+    private persistLocalStorage() {
+        for (let key of this.storageKeys) {
+            if ((<any>this)[key]) {
+                window.localStorage.setItem(key, JSON.stringify((<any>this)[key]));
+            }
+        }
+    }
+
+    // Clears all used localStorage
+    private clearLocalStorage() {
+        window.localStorage.clear();
     }
     
     // Returns if the supplied cache item is still valid

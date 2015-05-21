@@ -70,7 +70,11 @@ var WkCache = (function () {
         this._userInformation = {};
         this._studyQueue = {};
         this._levelProgress = {};
+        this.storageKeys = ['_userInformation', '_studyQueue', '_levelProgress'];
         this._fetcher = new fetcher_1.Fetcher(apiKey);
+        if (window.localStorage) {
+            this.loadLocalStorage();
+        }
     }
     WkCache.prototype.getUserInformation = function () {
         var _this = this;
@@ -131,6 +135,26 @@ var WkCache = (function () {
                 lastUpdated: this.getTime()
             };
         }
+        this.persistLocalStorage();
+    };
+    WkCache.prototype.loadLocalStorage = function () {
+        for (var _i = 0, _a = this.storageKeys; _i < _a.length; _i++) {
+            var key = _a[_i];
+            if (window.localStorage.getItem(key)) {
+                this[key] = JSON.parse(window.localStorage.getItem(key));
+            }
+        }
+    };
+    WkCache.prototype.persistLocalStorage = function () {
+        for (var _i = 0, _a = this.storageKeys; _i < _a.length; _i++) {
+            var key = _a[_i];
+            if (this[key]) {
+                window.localStorage.setItem(key, JSON.stringify(this[key]));
+            }
+        }
+    };
+    WkCache.prototype.clearLocalStorage = function () {
+        window.localStorage.clear();
     };
     WkCache.prototype.isValid = function (cacheItem) {
         if (!cacheItem)
