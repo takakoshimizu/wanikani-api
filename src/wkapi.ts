@@ -1,7 +1,6 @@
-﻿import { IUserInformation, IStudyQueue} from 'typings/apiTypes';
-import { IWkCache } from 'typings/cacheTypes';
-import { WkCache } from 'wkCache';
-import { convertCase } from 'util/objectConvert';
+﻿import { IUserInformation, IStudyQueue} from './typings/apiTypes';
+import { IWkCache } from './typings/cacheTypes';
+import { WkCache } from './wkCache';
 
 export class WkApi {
     private cache: IWkCache;
@@ -12,15 +11,22 @@ export class WkApi {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
 
-        this.cache = new WkCache();
+        this.cache = new WkCache(apiKey);
+        this.setExpiry(120); // testing mode
     }
-    public userInformation(): IUserInformation {
-        var userInfo: IUserInformation = this.cache.getUserInformation();
-        if (userInfo) return userInfo;
-
-        throw 'requests not implemented';
+    
+    // Sets the cache expiry time in seconds
+    public setExpiry(time: number): void {
+        this.cache.setExpiry(time);
+    }
+    
+    // Returns the User Information segment cached off
+    // the latest request.
+    public userInformation(): Promise<IUserInformation> {
+        return this.cache.getUserInformation();
     }
 
+    // Returns the current user's study queue
     public studyQueue(): IStudyQueue {
         throw 'not yet implemented';
     }

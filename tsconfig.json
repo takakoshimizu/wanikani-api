@@ -4,9 +4,9 @@
         "noImplicitAny": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "sourceMap": true
+        "sourceMap": false
     },
     "files": [
-        "src/wkapi.ts"
+        "src/browser-shim.ts"
     ]
 }

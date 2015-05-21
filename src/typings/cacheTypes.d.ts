@@ -1,7 +1,8 @@
 ﻿import { IUserInformation } from 'apiTypes';
 
 export interface IWkCache {
-    getUserInformation(): IUserInformation;
+    getUserInformation(): Promise<IUserInformation>;
+    setExpiry(time: number): void;
 }
 
 export interface ICache {

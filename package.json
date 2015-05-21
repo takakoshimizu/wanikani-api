@@ -4,7 +4,7 @@
   "description": "A small javascript library to facilitate easier client-only interaction with the Wanikani (http://wanikani.com) API.",
   "main": "",
   "scripts": {
-    "build": "tsc src/wkapi.ts -m commonjs -t ES5 --out dist/wkapi.ts --removeComments",
+    "build": "tsc && browserify src/browser-shim.js -o dist/wkapi.js",
     "test": ""
   },
   "repository": {
