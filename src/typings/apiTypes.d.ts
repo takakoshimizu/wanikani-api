@@ -48,3 +48,20 @@ export interface ISRSDistribution extends IApiInformation {
     enlighten: ISRSDistributionItem;
     burned: ISRSDistributionItem;
 }
+
+export interface IRecentUnlock extends IApiInformation {
+    type: string;
+    character?: string;
+    image?: string;
+    meaning: string;
+    kana?: string;
+    onyomi?: string;
+    kunyomi?: string;
+    importantReading?: string;
+    level: number;
+    unlockedDate: number;
+}
+
+export interface ICriticalItem extends IRecentUnlock {
+    percentage: number;
+}

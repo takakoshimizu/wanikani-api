@@ -1,6 +1,6 @@
 ﻿import {
     IUserInformation, IStudyQueue, ILevelProgress,
-    ISRSDistribution } from './typings/apiTypes';
+    ISRSDistribution, IRecentUnlock } from './typings/apiTypes';
 import { IWkCache, WkCache } from './wkCache';
 
 export class WkApi {
@@ -39,5 +39,9 @@ export class WkApi {
     // returns the current user's SRS distribution
     public getSrsDistribution(): Promise<ISRSDistribution> {
         return this._cache.getSrsDistribution();
+    }
+
+    public getRecentUnlocks(count: number = 10): Promise<IRecentUnlock[]> {
+        return this._cache.getRecentUnlocks(count);
     }
 }

@@ -12,7 +12,7 @@ var Fetcher = (function () {
     Fetcher.prototype.constructUrl = function (type, limit) {
         var url = this.API_BASE + this._apiKey + '/' + type + '/';
         if (limit) {
-            url += url + limit + '/';
+            url += limit + '/';
         }
         return url;
     };
@@ -71,8 +71,9 @@ var WkCache = (function () {
         this._studyQueue = {};
         this._levelProgress = {};
         this._srsDistribution = {};
+        this._recentUnlocks = {};
         this.storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
-            '_srsDistribution'];
+            '_srsDistribution', '_recentUnlocks'];
         this._fetcher = new fetcher_1.Fetcher(apiKey);
         if (window.localStorage) {
             this.loadLocalStorage();
@@ -132,6 +133,26 @@ var WkCache = (function () {
             var data = _this._fetcher.getData('srs-distribution');
             data.then(function (value) {
                 _this.setCacheItem(_this._srsDistribution, value);
+                resolve(value.requestedInformation);
+            }).catch(function () {
+                reject();
+            });
+        });
+    };
+    WkCache.prototype.getRecentUnlocks = function (count) {
+        var _this = this;
+        if (count === void 0) { count = 10; }
+        var overrideCache = false;
+        if (this._recentUnlocks.data) {
+            overrideCache = this._recentUnlocks.data.length != count;
+        }
+        if (this.isValid(this._recentUnlocks) && !overrideCache) {
+            return Promise.resolve(this._recentUnlocks.data);
+        }
+        return new Promise(function (resolve, reject) {
+            var data = _this._fetcher.getData('recent-unlocks', count);
+            data.then(function (value) {
+                _this.setCacheItem(_this._recentUnlocks, value);
                 resolve(value.requestedInformation);
             }).catch(function () {
                 reject();
@@ -213,6 +234,10 @@ var WkApi = (function () {
     };
     WkApi.prototype.getSrsDistribution = function () {
         return this._cache.getSrsDistribution();
+    };
+    WkApi.prototype.getRecentUnlocks = function (count) {
+        if (count === void 0) { count = 10; }
+        return this._cache.getRecentUnlocks(count);
     };
     return WkApi;
 })();

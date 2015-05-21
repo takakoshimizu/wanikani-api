@@ -1,50 +1,60 @@
 <!doctype html>
 <html>
-    <head>
-        <script type="text/javascript" src="wkapi.js"></script>
-    </head>
-    <body>
-        <div>
-            <textarea id="testInfo" rows="5" cols="150">
-                Test info will populate here
-            </textarea>
-        </div>
-        <div>
-            <button id="userInfo">User Information</button>
-            <button id="studyQueue">Study Queue</button>
-            <button id="levelProgress">Level Progression</button>
-            <button id="srsDistro">SRS Distribution</button>
-        </div>
+<head>
+    <script type="text/javascript" src="wkapi.js"></script>
+</head>
+<body>
+    <div>
+        <textarea id="testInfo" rows="5" cols="150">
+            Test info will populate here
+        </textarea>
+    </div>
+    <div>
+        <button id="userInfo">User Information</button>
+        <button id="studyQueue">Study Queue</button>
+        <button id="levelProgress">Level Progression</button>
+        <button id="srsDistro">SRS Distribution</button>
+    </div>
+    <div>
+        How Many?<input id="recentUnlocksCount" value="10" /> <button id="recentUnlocks">Recent Unlocks</button>
+    </div>
 
-        <script type="text/javascript">
-            var wk = new WkApi('INSERT_KEY_HERE');
-            wk.setExpiry(120);
+    <script type="text/javascript">
+        var wk = new WkApi('API_KEY_HERE');
+        wk.setExpiry(120);
 
-            var testInfo = document.getElementById('testInfo');
+        var testInfo = document.getElementById('testInfo');
 
-            document.getElementById('userInfo').addEventListener('click', function () {
-                wk.getUserInformation().then(function (results) {
-                    testInfo.value = JSON.stringify(results);
-                });
+        document.getElementById('userInfo').addEventListener('click', function () {
+            wk.getUserInformation().then(function (results) {
+                testInfo.value = JSON.stringify(results);
             });
+        });
 
-            document.getElementById('studyQueue').addEventListener('click', function (e) {
-                wk.getStudyQueue().then(function (results) {
-                    testInfo.value = JSON.stringify(results);
-                });
+        document.getElementById('studyQueue').addEventListener('click', function (e) {
+            wk.getStudyQueue().then(function (results) {
+                testInfo.value = JSON.stringify(results);
             });
+        });
 
-            document.getElementById('levelProgress').addEventListener('click', function (e) {
-                wk.getLevelProgression().then(function (results) {
-                    testInfo.value = JSON.stringify(results);
-                });
+        document.getElementById('levelProgress').addEventListener('click', function (e) {
+            wk.getLevelProgression().then(function (results) {
+                testInfo.value = JSON.stringify(results);
             });
+        });
 
-            document.getElementById('srsDistro').addEventListener('click', function () {
-                wk.getSrsDistribution().then(function (results) {
-                    testInfo.value = JSON.stringify(results);
-                });
+        document.getElementById('srsDistro').addEventListener('click', function () {
+            wk.getSrsDistribution().then(function (results) {
+                testInfo.value = JSON.stringify(results);
             });
-        </script>
-    </body>
+        });
+
+        document.getElementById('recentUnlocks').addEventListener('click', function () {
+            var count = document.getElementById('recentUnlocksCount').value;
+            wk.getRecentUnlocks(count).then(function (results) {
+                testInfo.value = JSON.stringify(results);
+            });
+        });
+    </script>
+</body>
 </html>

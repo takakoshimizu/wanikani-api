@@ -2,7 +2,8 @@
 
 import {
     IApiResponse, IApiInformation, IUserInformation,
-    IStudyQueue, ILevelProgress, ISRSDistribution } from './typings/apiTypes';
+    IStudyQueue, ILevelProgress, ISRSDistribution,
+    IRecentUnlock } from './typings/apiTypes';
 import { IFetcher, Fetcher } from './fetcher';
 
 interface ICache<T> {
@@ -15,6 +16,7 @@ export interface IWkCache {
     getStudyQueue(): Promise<IStudyQueue>;
     getLevelProgression(): Promise<ILevelProgress>;
     getSrsDistribution(): Promise<ISRSDistribution>;
+    getRecentUnlocks(count: number): Promise<IRecentUnlock[]>;
     setExpiry(time: number): void;
 }
 
@@ -25,9 +27,10 @@ export class WkCache implements IWkCache {
     private _studyQueue: ICache<IStudyQueue> = <ICache<IStudyQueue>> {};
     private _levelProgress: ICache<ILevelProgress> = <ICache<ILevelProgress>> {};
     private _srsDistribution: ICache<ISRSDistribution> = <ICache<ISRSDistribution>> {};
+    private _recentUnlocks: ICache<IRecentUnlock[]> = <ICache<IRecentUnlock[]>> {};
 
     private storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
-                            '_srsDistribution'];
+                            '_srsDistribution', '_recentUnlocks'];
     
     constructor(apiKey: string) {
         this._fetcher = new Fetcher(apiKey);
@@ -105,7 +108,31 @@ export class WkCache implements IWkCache {
             });
         });
     }
-    
+
+    // Returns the recent unlocks list in a promise if still valid.
+    // Otherwise returns a promise containing the incoming information
+    // Takes a count between 1 and 100. Will Override the cache if the number
+    // has changed
+    public getRecentUnlocks(count: number = 10): Promise<IRecentUnlock[]> {
+        let overrideCache = false;
+        if (this._recentUnlocks.data) {
+            overrideCache = this._recentUnlocks.data.length != count;
+        }
+
+        if (this.isValid(this._recentUnlocks) && !overrideCache) {
+            return Promise.resolve<IRecentUnlock[]>(this._recentUnlocks.data);
+        }
+        return new Promise<IRecentUnlock[]>((resolve, reject) => {
+            let data = this._fetcher.getData<IApiResponse<IRecentUnlock[]>>('recent-unlocks', count);
+            data.then((value: IApiResponse<IRecentUnlock[]>) => {
+                this.setCacheItem(this._recentUnlocks, value);
+                resolve(value.requestedInformation);
+            }).catch(() => {
+                reject();
+            });
+        });
+    }
+
     // Sets the expiry time in seconds
     public setExpiry(time: number): void {
         this._expiryTime = time;

@@ -22,7 +22,7 @@ export class Fetcher implements IFetcher {
 	private constructUrl(type: string, limit?: number): string {
 		let url = this.API_BASE + this._apiKey + '/' + type + '/';
 		if (limit) {
-			url += url + limit + '/';
+			url += limit + '/';
 		}
 		return url;
 	}
