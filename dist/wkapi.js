@@ -1,22 +1,22 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
 var wkapi_1 = require('./wkapi');
-if (window) {
-    window.WkApi = wkapi_1.WkApi;
-}
+global.WkApi = wkapi_1.WkApi;
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./wkapi":6}],2:[function(require,module,exports){
 /// <reference path="typings/promise.d.ts" />
 var jsonp_1 = require('./util/jsonp');
 var Fetcher = (function () {
     function Fetcher(apiKey) {
         this.apiKey = apiKey;
-        this.API_BASE = 'https://wanikani.com/api/v1.3/';
+        this.API_BASE = 'https://www.wanikani.com/api/v1.3/user/';
     }
     Fetcher.prototype.getData = function (type, limit) {
         return jsonp_1.jsonp(this.constructUrl(type, limit));
     };
     Fetcher.prototype.constructUrl = function (type, limit) {
-        var url = this.API_BASE + type + '/';
+        var url = this.API_BASE + this.apiKey + '/' + type + '/';
         if (limit) {
             url += url + limit + '/';
         }
@@ -33,6 +33,11 @@ exports.jsonp = function (url) {
     if (!window.Promise) {
         throw 'Promise not available. Please apply a polyfill.';
     }
+    var createScript = function (url, callbackName) {
+        var script = document.createElement('script');
+        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+        return script;
+    };
     return new Promise(function (resolve, reject) {
         var callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
         var script = createScript(url, callbackName);
@@ -45,11 +50,6 @@ exports.jsonp = function (url) {
             document.body.removeChild(script);
         };
     });
-    var createScript = function (url, callbackName) {
-        var script = document.createElement('script');
-        script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-        return script;
-    };
 };
 
 },{"./objectConvert":4}],4:[function(require,module,exports){
@@ -76,18 +76,28 @@ var WkCache = (function () {
         this.fetcher = new fetcher_1.Fetcher(apiKey);
     }
     WkCache.prototype.getUserInformation = function () {
+        var _this = this;
         if (this.isValid(this.userInformation)) {
             return Promise.resolve(this.userInformation.userInformation);
         }
-        return this.fetcher.getData('user_information');
+        return this.fetcher.getData('user-information')
+            .then(function (value) {
+            _this.userInformation = {
+                userInformation: value,
+                lastUpdated: _this.getTime()
+            };
+            return value;
+        });
     };
     WkCache.prototype.setExpiry = function (time) {
         this.expiryTime = time;
     };
     WkCache.prototype.isValid = function (cacheItem) {
+        if (!cacheItem)
+            return false;
         var now = this.getTime();
         var maxValidity = cacheItem.lastUpdated + this.expiryTime;
-        return now > maxValidity;
+        return maxValidity > now;
     };
     WkCache.prototype.getTime = function () {
         return (new Date()).getTime() / 1000;

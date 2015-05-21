@@ -21,7 +21,7 @@ export class WkApi {
     }
     
     // Returns the User Information segment cached off
-    // the latest request.
+    // the latest request, wrapped in a Promise
     public userInformation(): Promise<IUserInformation> {
         return this.cache.getUserInformation();
     }

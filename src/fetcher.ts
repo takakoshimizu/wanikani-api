@@ -8,7 +8,7 @@ export interface IFetcher {
 }
 
 export class Fetcher implements IFetcher {
-	private API_BASE = 'https://wanikani.com/api/v1.3/';
+	private API_BASE = 'https://www.wanikani.com/api/v1.3/user/';
 	
 	constructor(private apiKey: string){}
 	
@@ -20,7 +20,7 @@ export class Fetcher implements IFetcher {
 	
 	// Constructs an API URL to access the requested data.
 	private constructUrl(type: string, limit?: number): string {
-		let url = this.API_BASE + type + '/';
+		let url = this.API_BASE + this.apiKey + '/' + type + '/';
 		if (limit) {
 			url += url + limit + '/';
 		}

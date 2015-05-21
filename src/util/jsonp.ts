@@ -8,6 +8,12 @@ export var jsonp = <T>(url: string): Promise<T> => {
 		throw 'Promise not available. Please apply a polyfill.';
 	}
 
+	var createScript = (url: string, callbackName: string): HTMLScriptElement => {
+	    let script = document.createElement('script');
+	    script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+	    return script;
+	};
+
 	return new Promise<T>((resolve, reject) => {
 		let callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
 		let script = createScript(url, callbackName);
@@ -23,10 +29,4 @@ export var jsonp = <T>(url: string): Promise<T> => {
 			document.body.removeChild(script);
 		};
 	});
-	
-	var createScript = (url: string, callbackName: string): HTMLScriptElement => {
-	    let script = document.createElement('script');
-	    script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-	    return script;
-	};
 };

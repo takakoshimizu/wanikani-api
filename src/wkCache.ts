@@ -19,7 +19,14 @@ export class WkCache implements IWkCache {
         if (this.isValid(this.userInformation)) {
             return Promise.resolve<IUserInformation>(this.userInformation.userInformation);
         }
-        return this.fetcher.getData<IUserInformation>('user_information');
+        return this.fetcher.getData<IUserInformation>('user-information')
+        .then((value: IUserInformation) => {
+            this.userInformation = {
+                userInformation: value,
+                lastUpdated: this.getTime()
+            };
+            return value;
+        });
     }
     
     // Sets the expiry time in seconds
@@ -30,9 +37,10 @@ export class WkCache implements IWkCache {
     // Returns if the supplied cache item is still valid
     // based on the current expiry time
     private isValid(cacheItem: ICache): boolean {
+        if (!cacheItem) return false;
         let now = this.getTime();
         let maxValidity = cacheItem.lastUpdated + this.expiryTime;
-        return now > maxValidity;
+        return maxValidity > now;
     }
     
     // Returns the current unix epoch time
