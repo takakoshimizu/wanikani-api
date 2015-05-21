@@ -1,8 +1,14 @@
 ﻿/// <reference path="./typings/promise.d.ts" />
 
-import { IWkCache, ICache } from './typings/cacheTypes';
+import { ICache } from './typings/cacheTypes';
 import { IApiResponse, IApiInformation, IUserInformation, IStudyQueue } from './typings/apiTypes';
 import { IFetcher, Fetcher } from './fetcher';
+
+export interface IWkCache {
+    getUserInformation(): Promise<IUserInformation>;
+    getStudyQueue(): Promise<IStudyQueue>;
+    setExpiry(time: number): void;
+}
 
 export class WkCache implements IWkCache {
     private _fetcher: IFetcher;
