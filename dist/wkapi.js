@@ -1,10 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-(function (global){
-var wkapi_1 = require('./wkapi');
-global.WkApi = wkapi_1.WkApi;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./wkapi":6}],2:[function(require,module,exports){
 /// <reference path="typings/promise.d.ts" />
 var jsonp_1 = require('./util/jsonp');
 var Fetcher = (function () {
@@ -26,7 +20,7 @@ var Fetcher = (function () {
 })();
 exports.Fetcher = Fetcher;
 
-},{"./util/jsonp":3}],3:[function(require,module,exports){
+},{"./util/jsonp":2}],2:[function(require,module,exports){
 /// <reference path="../typings/promise.d.ts" />
 var objectConvert_1 = require('./objectConvert');
 exports.jsonp = function (url) {
@@ -52,7 +46,7 @@ exports.jsonp = function (url) {
     });
 };
 
-},{"./objectConvert":4}],4:[function(require,module,exports){
+},{"./objectConvert":3}],3:[function(require,module,exports){
 exports.convertCase = function (obj) {
     if (!obj || typeof obj !== "object")
         return obj;
@@ -67,7 +61,7 @@ exports.convertCase = function (obj) {
     return newObj;
 };
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /// <reference path="./typings/promise.d.ts" />
 var fetcher_1 = require('./fetcher');
 var WkCache = (function () {
@@ -106,7 +100,7 @@ var WkCache = (function () {
 })();
 exports.WkCache = WkCache;
 
-},{"./fetcher":2}],6:[function(require,module,exports){
+},{"./fetcher":1}],5:[function(require,module,exports){
 var wkCache_1 = require('./wkCache');
 var WkApi = (function () {
     function WkApi(apiKey) {
@@ -130,4 +124,10 @@ var WkApi = (function () {
 })();
 exports.WkApi = WkApi;
 
-},{"./wkCache":5}]},{},[1]);
+},{"./wkCache":4}],6:[function(require,module,exports){
+(function (global){
+var wkapi_1 = require('./wkapi');
+global.WkApi = wkapi_1.WkApi;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./wkapi":5}]},{},[6]);

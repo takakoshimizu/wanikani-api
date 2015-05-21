@@ -5,6 +5,7 @@
   "main": "",
   "scripts": {
     "build": "tsc && browserify src/browser-shim.js -o dist/wkapi.js",
+    "prod": "tsc && browserify src/browser-shim.js -o dist/wkapi.js && uglifyjs dist/wkapi.js -cmo dist/wkapi.min.js",
     "test": ""
   },
   "repository": {
@@ -21,6 +22,8 @@
   },
   "homepage": "https://github.com/takakoshimizu/wanikani-api",
   "devDependencies": {
-    "typescript": "~1.5.0-beta"
+    "typescript": "~1.5.0-beta",
+    "browserify": "~10.2.1",
+    "uglify-js": "~2.4.23"
   }
 }
