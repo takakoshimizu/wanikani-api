@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+    <title>Brief WkApi Demo</title>
+    <script type="text/javascript" src="wkapi.min.js"></script>
+</head>
+<body>
+    <div id="apiEntry">
+        Wanikani API Key: <input type="text" id="apiKey" size="32" /> <button id="submitKey">Submit Key</button>
+    </div>
+    <div id="testarea" style="display:none;">
+        <div>
+            <textarea id="testInfo" rows="5" cols="150">
+                Test info will populate here
+            </textarea>
+        </div>
+        <div>
+            <button id="userInfo">User Information</button>
+            <button id="studyQueue">Study Queue</button>
+            <button id="levelProgress">Level Progression</button>
+            <button id="srsDistro">SRS Distribution</button>
+        </div>
+        <div>
+            How Many?<input id="recentUnlocksCount" value="10" /> <button id="recentUnlocks">Recent Unlocks</button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var savedKey = localStorage.getItem('apiKey');
+        if (savedKey) {
+            activateWk(savedKey);
+        } else {
+            document.getElementById('submitKey').addEventListener('click', function() {
+                var key = document.getElementById('apiKey').value;
+                activateWk(key);
+            });
+        }
+
+        function activateWk(key) {
+            try {
+                var wk = new WkApi(key);
+                wk.setExpiry(120);
+            } catch (e) {
+                alert('Unable to initialize. \n' + e);
+                return;
+            }
+
+            localStorage.setItem('apiKey', key);
+            document.getElementById('testarea').style.display = '';
+            document.getElementById('apiEntry').style.display = 'none';
+
+            var testInfo = document.getElementById('testInfo');
+
+            document.getElementById('userInfo').addEventListener('click', function () {
+                wk.getUserInformation().then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('studyQueue').addEventListener('click', function (e) {
+                wk.getStudyQueue().then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('levelProgress').addEventListener('click', function (e) {
+                wk.getLevelProgression().then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('srsDistro').addEventListener('click', function () {
+                wk.getSrsDistribution().then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('recentUnlocks').addEventListener('click', function () {
+                var count = document.getElementById('recentUnlocksCount').value;
+                wk.getRecentUnlocks(count).then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+        };
+    </script>
+</body>
+</html>
