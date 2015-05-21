@@ -1,17 +1,32 @@
 <!doctype html>
 <html>
 <head>
-    <script type="text/javascript" src="wkapi.js"></script>
+    <script type="text/javascript" src="wkapi.min.js"></script>
 </head>
 <body>
-    <textarea id="testInfo" rows="5" cols="150">
-        Test info will populate here
-    </textarea>
+    <div>
+        <textarea id="testInfo" rows="5" cols="150">
+            Test info will populate here
+        </textarea>
+    </div>
+    <div>
+        <button id="userInfo">User Information</button>
+        <button id="studyQueue">Study Queue</button>
+    </div>
 
     <script type="text/javascript">
         var wk = new WkApi('INSERT_KEY_HERE');
-        wk.userInformation().then(function (results) {
-            document.getElementById('testInfo').value = JSON.stringify(results);
+
+        document.getElementById('userInfo').addEventListener('click', function (e) {
+            wk.getUserInformation().then(function (results) {
+                document.getElementById('testInfo').value = JSON.stringify(results);
+            });
+        });
+
+        document.getElementById('studyQueue').addEventListener('click', function (e) {
+            wk.getStudyQueue().then(function (results) {
+                document.getElementById('testInfo').value = JSON.stringify(results);
+            });
         });
     </script>
 </body>

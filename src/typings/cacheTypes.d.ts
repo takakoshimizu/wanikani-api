@@ -1,14 +1,12 @@
-﻿import { IUserInformation } from 'apiTypes';
+﻿import { IUserInformation, IStudyQueue } from 'apiTypes';
 
 export interface IWkCache {
     getUserInformation(): Promise<IUserInformation>;
+    getStudyQueue(): Promise<IStudyQueue>;
     setExpiry(time: number): void;
 }
 
-export interface ICache {
+export interface ICache<T> {
     lastUpdated: number;
-}
-
-export interface IUserInformationCache extends ICache {
-    userInformation: IUserInformation;
+    data: T;
 }
