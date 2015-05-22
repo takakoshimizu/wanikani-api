@@ -3,7 +3,7 @@
 import {
     IApiResponse, IApiInformation, IUserInformation,
     IStudyQueue, ILevelProgress, ISRSDistribution,
-    IRecentUnlock } from './typings/apiTypes';
+    IRecentUnlock, ICriticalItem } from './typings/apiTypes';
 import { IFetcher, Fetcher } from './fetcher';
 
 interface ICache<T> {
@@ -23,14 +23,17 @@ export interface IWkApi {
 export class WkApi implements IWkApi {
     private _fetcher: IFetcher;
     private _expiryTime: number = 3600; // seconds
+    private _lastCriticalRate: number = 0;
     private _userInformation: ICache<IUserInformation> = <ICache<IUserInformation>> {};
     private _studyQueue: ICache<IStudyQueue> = <ICache<IStudyQueue>> {};
     private _levelProgress: ICache<ILevelProgress> = <ICache<ILevelProgress>> {};
     private _srsDistribution: ICache<ISRSDistribution> = <ICache<ISRSDistribution>> {};
     private _recentUnlocks: ICache<IRecentUnlock[]> = <ICache<IRecentUnlock[]>> {};
+    private _criticalItems: ICache<ICriticalItem[]> = <ICache<ICriticalItem[]>> {};
 
     private _storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
-                            '_srsDistribution', '_recentUnlocks'];
+        '_srsDistribution', '_recentUnlocks', '_criticalItems',
+        '_lastCriticalRate'];
     
     constructor(private _apiKey: string) {
         // validate apiKey format
@@ -57,9 +60,7 @@ export class WkApi implements IWkApi {
             data.then((value: IApiResponse<IUserInformation>) => {
                 this._setCacheItem(this._userInformation, value);
                 resolve(value.userInformation);
-            }).catch(() => {
-                reject();
-            });
+            }).catch(reject);
         });
     }
 
@@ -74,9 +75,7 @@ export class WkApi implements IWkApi {
             data.then((value: IApiResponse<IStudyQueue>) => {
                 this._setCacheItem(this._studyQueue, value);
                 resolve(value.requestedInformation);
-            }).catch(() => {
-                reject();
-            });
+            }).catch(reject);
         });
     }
 
@@ -91,9 +90,7 @@ export class WkApi implements IWkApi {
             data.then((value: IApiResponse<ILevelProgress>) => {
                 this._setCacheItem(this._levelProgress, value);
                 resolve(value.requestedInformation);
-            }).catch(() => {
-                reject();
-            });
+            }).catch(reject);
         });
     }
 
@@ -108,9 +105,7 @@ export class WkApi implements IWkApi {
             data.then((value: IApiResponse<ISRSDistribution>) => {
                 this._setCacheItem(this._srsDistribution, value);
                 resolve(value.requestedInformation);
-            }).catch(() => {
-                reject();
-            });
+            }).catch(reject);
         });
     }
 
@@ -132,12 +127,32 @@ export class WkApi implements IWkApi {
             data.then((value: IApiResponse<IRecentUnlock[]>) => {
                 this._setCacheItem(this._recentUnlocks, value);
                 resolve(value.requestedInformation);
-            }).catch(() => {
-                reject();
-            });
+            }).catch(reject);
         });
     }
 
+    // Returns the critical items list in a promise if still valid.
+    // Otherwise returns a promise containing the incoming information.
+    // Takes a correct-rate to use as the bar for entry. Anything lower
+    // is included. Will override the cache if the correct-rate has changed.
+    public getCriticalItems(rate: number = 75): Promise<ICriticalItem[]> {
+        let overrideCache = this._lastCriticalRate != rate;
+
+        if (this._isValid(this._criticalItems) && !overrideCache) {
+            return Promise.resolve<ICriticalItem[]>(this._criticalItems.data);
+        }
+
+        this._lastCriticalRate = rate;
+
+        return new Promise<ICriticalItem[]>((resolve, reject) => {
+            let data = this._fetcher.getData<IApiResponse<ICriticalItem[]>>('critical-items', rate);
+            data.then((value: IApiResponse<ICriticalItem[]>) => {
+                this._setCacheItem(this._criticalItems, value);
+                resolve(value.requestedInformation);
+            }).catch(reject);
+        });
+    }
+    
     // Sets the expiry time in seconds
     public setExpiry(time: number): void {
         this._expiryTime = time;

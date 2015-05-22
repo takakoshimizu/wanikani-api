@@ -68,13 +68,16 @@ var WkApi = (function () {
     function WkApi(_apiKey) {
         this._apiKey = _apiKey;
         this._expiryTime = 3600;
+        this._lastCriticalRate = 0;
         this._userInformation = {};
         this._studyQueue = {};
         this._levelProgress = {};
         this._srsDistribution = {};
         this._recentUnlocks = {};
+        this._criticalItems = {};
         this._storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
-            '_srsDistribution', '_recentUnlocks'];
+            '_srsDistribution', '_recentUnlocks', '_criticalItems',
+            '_lastCriticalRate'];
         if (_apiKey.length !== 32 || !_apiKey.match(/[A-z0-9]{32}/)) {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
@@ -93,9 +96,7 @@ var WkApi = (function () {
             data.then(function (value) {
                 _this._setCacheItem(_this._userInformation, value);
                 resolve(value.userInformation);
-            }).catch(function () {
-                reject();
-            });
+            }).catch(reject);
         });
     };
     WkApi.prototype.getStudyQueue = function () {
@@ -108,9 +109,7 @@ var WkApi = (function () {
             data.then(function (value) {
                 _this._setCacheItem(_this._studyQueue, value);
                 resolve(value.requestedInformation);
-            }).catch(function () {
-                reject();
-            });
+            }).catch(reject);
         });
     };
     WkApi.prototype.getLevelProgression = function () {
@@ -123,9 +122,7 @@ var WkApi = (function () {
             data.then(function (value) {
                 _this._setCacheItem(_this._levelProgress, value);
                 resolve(value.requestedInformation);
-            }).catch(function () {
-                reject();
-            });
+            }).catch(reject);
         });
     };
     WkApi.prototype.getSrsDistribution = function () {
@@ -138,9 +135,7 @@ var WkApi = (function () {
             data.then(function (value) {
                 _this._setCacheItem(_this._srsDistribution, value);
                 resolve(value.requestedInformation);
-            }).catch(function () {
-                reject();
-            });
+            }).catch(reject);
         });
     };
     WkApi.prototype.getRecentUnlocks = function (count) {
@@ -158,9 +153,22 @@ var WkApi = (function () {
             data.then(function (value) {
                 _this._setCacheItem(_this._recentUnlocks, value);
                 resolve(value.requestedInformation);
-            }).catch(function () {
-                reject();
-            });
+            }).catch(reject);
+        });
+    };
+    WkApi.prototype.getCriticalItems = function (rate) {
+        var _this = this;
+        if (rate === void 0) { rate = 75; }
+        var overrideCache = this._lastCriticalRate != rate;
+        if (this._isValid(this._criticalItems) && !overrideCache) {
+            return Promise.resolve(this._criticalItems.data);
+        }
+        return new Promise(function (resolve, reject) {
+            var data = _this._fetcher.getData('critical-items', rate);
+            data.then(function (value) {
+                _this._setCacheItem(_this._criticalItems, value);
+                resolve(value.requestedInformation);
+            }).catch(reject);
         });
     };
     WkApi.prototype.setExpiry = function (time) {
