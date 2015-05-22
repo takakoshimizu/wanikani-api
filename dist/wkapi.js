@@ -163,6 +163,7 @@ var WkApi = (function () {
         if (this._isValid(this._criticalItems) && !overrideCache) {
             return Promise.resolve(this._criticalItems.data);
         }
+        this._lastCriticalRate = rate;
         return new Promise(function (resolve, reject) {
             var data = _this._fetcher.getData('critical-items', rate);
             data.then(function (value) {
