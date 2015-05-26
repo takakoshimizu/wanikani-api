@@ -4,7 +4,7 @@ import { IApiResponse } from './typings/apiTypes';
 import { jsonp } from './util/jsonp';
 
 export interface IFetcher {
-	getData<T>(type: string, limit?: number): Promise<T>;
+	getData<T>(type: string, args?: number | string): Promise<T>;
 }
 
 export class Fetcher implements IFetcher {
@@ -14,15 +14,15 @@ export class Fetcher implements IFetcher {
 	
 	// Gets an API URL with the /type/ and optionally a limit.
 	// Returns a promise that will contain the requested data.
-	public getData<T>(type: string, limit?: number): Promise<T> {
-		return jsonp<T>(this.constructUrl(type, limit));
+	public getData<T>(type: string, args?: number | string): Promise<T> {
+		return jsonp<T>(this.constructUrl(type, args));
 	}
 	
 	// Constructs an API URL to access the requested data.
-	private constructUrl(type: string, limit?: number): string {
+	private constructUrl(type: string, args?: number | string): string {
 		let url = this.API_BASE + this._apiKey + '/' + type + '/';
-		if (limit) {
-			url += limit + '/';
+		if (args) {
+			url += args + '/';
 		}
 		return url;
 	}

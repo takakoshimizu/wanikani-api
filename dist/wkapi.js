@@ -6,13 +6,13 @@ var Fetcher = (function () {
         this._apiKey = _apiKey;
         this.API_BASE = 'https://www.wanikani.com/api/v1.3/user/';
     }
-    Fetcher.prototype.getData = function (type, limit) {
-        return jsonp_1.jsonp(this.constructUrl(type, limit));
+    Fetcher.prototype.getData = function (type, args) {
+        return jsonp_1.jsonp(this.constructUrl(type, args));
     };
-    Fetcher.prototype.constructUrl = function (type, limit) {
+    Fetcher.prototype.constructUrl = function (type, args) {
         var url = this.API_BASE + this._apiKey + '/' + type + '/';
-        if (limit) {
-            url += limit + '/';
+        if (args) {
+            url += args + '/';
         }
         return url;
     };
@@ -38,7 +38,12 @@ exports.jsonp = function (url) {
         script.onerror = reject;
         document.body.appendChild(script);
         window[callbackName] = function (data) {
-            resolve(objectConvert_1.convertCase(data));
+            if (data.error) {
+                reject(data.error);
+            }
+            else {
+                resolve(objectConvert_1.convertCase(data));
+            }
             window[callbackName] = null;
             delete window[callbackName];
             document.body.removeChild(script);
@@ -75,9 +80,10 @@ var WkApi = (function () {
         this._srsDistribution = {};
         this._recentUnlocks = {};
         this._criticalItems = {};
+        this._radicals = {};
         this._storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
             '_srsDistribution', '_recentUnlocks', '_criticalItems',
-            '_lastCriticalRate'];
+            '_lastCriticalRate', '_radicals'];
         if (_apiKey.length !== 32 || !_apiKey.match(/[A-z0-9]{32}/)) {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
@@ -172,8 +178,96 @@ var WkApi = (function () {
             }).catch(reject);
         });
     };
+    WkApi.prototype.getRadicals = function (levels) {
+        var _this = this;
+        if (!this._radicals)
+            this._radicals = {};
+        var parsedLevels = this._parseLevelRequest(levels);
+        var requiredLevels = this._findUncachedLevels(this._radicals, parsedLevels);
+        var completeCall = function () {
+            return parsedLevels.reduce(function (array, level) {
+                if (_this._radicals[level]) {
+                    return array.concat(_this._radicals[level].data);
+                }
+                return array;
+            }, []);
+        };
+        if (requiredLevels.length == 0) {
+            return Promise.resolve(completeCall());
+        }
+        return new Promise(function (resolve, reject) {
+            var data = _this._fetcher.getData('radicals', requiredLevels.join(','));
+            data.then(function (value) {
+                var sorted = _this._sortToLevels(value.requestedInformation);
+                for (var prop in sorted) {
+                    _this._radicals[prop] = sorted[prop];
+                    _this._radicals[prop].lastUpdated = _this._getTime();
+                }
+                _this._setCacheItem(_this._userInformation, value);
+                resolve(completeCall());
+            });
+        });
+    };
     WkApi.prototype.setExpiry = function (time) {
         this._expiryTime = time;
+    };
+    WkApi.prototype._parseLevelRequest = function (levels) {
+        var _this = this;
+        if (typeof levels === 'number') {
+            return [levels];
+        }
+        if (levels instanceof Array) {
+            return levels;
+        }
+        var stringLevels = levels.split(',');
+        return stringLevels.reduce(function (array, value) {
+            return array.concat(_this._parseLevelString(value)).reduce(function (array, value) {
+                if (array.indexOf(value) < 0)
+                    array.push(value);
+                return array;
+            }, []);
+        }, []).sort(function (a, b) { return a - b; });
+    };
+    WkApi.prototype._parseLevelString = function (level) {
+        if (level.indexOf('-') === -1) {
+            return [Number(level)];
+        }
+        var endPoints = level.split('-');
+        if (endPoints.length !== 2) {
+            throw 'Invalid level request string';
+        }
+        var start = Number(endPoints[0]);
+        var end = Number(endPoints[1]);
+        if (start > end) {
+            throw 'Invalid level request string';
+        }
+        var levelArray = [];
+        while (start <= end) {
+            levelArray.push(start++);
+        }
+        return levelArray;
+    };
+    WkApi.prototype._findUncachedLevels = function (cache, levels) {
+        var uncached = [];
+        if (!cache)
+            cache = {};
+        for (var _i = 0; _i < levels.length; _i++) {
+            var level = levels[_i];
+            if (!cache[level] || (cache[level] && !this._isValid(cache[level]))) {
+                uncached.push(level);
+            }
+        }
+        return uncached;
+    };
+    WkApi.prototype._sortToLevels = function (items) {
+        var finalObject = {};
+        items.forEach(function (item) {
+            if (!finalObject[item.level]) {
+                finalObject[item.level] = { lastUpdated: null, data: [] };
+            }
+            finalObject[item.level].data.push(item);
+        });
+        return finalObject;
     };
     WkApi.prototype._setCacheItem = function (cacheItem, apiItem) {
         if (apiItem.requestedInformation) {
