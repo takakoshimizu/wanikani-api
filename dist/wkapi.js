@@ -189,23 +189,26 @@ var WkApi = (function () {
         this._persistLocalStorage();
     };
     WkApi.prototype._loadLocalStorage = function () {
-        for (var _i = 0, _a = this._storageKeys; _i < _a.length; _i++) {
-            var key = _a[_i];
-            if (window.localStorage.getItem(key)) {
-                this[key] = JSON.parse(window.localStorage.getItem(key));
+        if (window.localStorage.getItem(this._apiKey)) {
+            var parsedStorage = JSON.parse(window.localStorage.getItem(this._apiKey));
+            for (var _i = 0, _a = this._storageKeys; _i < _a.length; _i++) {
+                var key = _a[_i];
+                this[key] = parsedStorage[key];
             }
         }
     };
     WkApi.prototype._persistLocalStorage = function () {
+        var toStore = {};
         for (var _i = 0, _a = this._storageKeys; _i < _a.length; _i++) {
             var key = _a[_i];
             if (this[key]) {
-                window.localStorage.setItem(key, JSON.stringify(this[key]));
+                toStore[key] = this[key];
             }
         }
+        window.localStorage.setItem(this._apiKey, JSON.stringify(toStore));
     };
     WkApi.prototype._clearLocalStorage = function () {
-        window.localStorage.clear();
+        window.localStorage[this._apiKey] = null;
     };
     WkApi.prototype._isValid = function (cacheItem) {
         if (!cacheItem)

@@ -177,25 +177,28 @@ export class WkApi implements IWkApi {
 
     // Loads all persisted information from localStorage
     private _loadLocalStorage() {
-        for (let key of this._storageKeys) {
-            if (window.localStorage.getItem(key)) {
-                (<any>this)[key] = JSON.parse(window.localStorage.getItem(key));
+        if (window.localStorage.getItem(this._apiKey)) {
+            let parsedStorage: any = JSON.parse(window.localStorage.getItem(this._apiKey));
+            for (let key of this._storageKeys) {
+                (<any>this)[key] = parsedStorage[key];
             }
         }
     }
 
     // Persists all information to localStorage
     private _persistLocalStorage() {
+        let toStore: any = {};
         for (let key of this._storageKeys) {
             if ((<any>this)[key]) {
-                window.localStorage.setItem(key, JSON.stringify((<any>this)[key]));
+                toStore[key] = (<any>this)[key];
             }
         }
+        window.localStorage.setItem(this._apiKey, JSON.stringify(toStore));
     }
 
     // Clears all used localStorage
     private _clearLocalStorage() {
-        window.localStorage.clear();
+        window.localStorage[this._apiKey] = null;
     }
     
     // Returns if the supplied cache item is still valid

@@ -1,6 +1,6 @@
 {
   "name": "WanikaniApi",
-  "version": "0.0.0",
+  "version": "0.5.0",
   "description": "A small javascript library to facilitate easier client-only interaction with the Wanikani (http://wanikani.com) API.",
   "main": "",
   "scripts": {
