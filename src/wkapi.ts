@@ -3,12 +3,17 @@
 import {
     IApiResponse, IApiInformation, IUserInformation,
     IStudyQueue, ILevelProgress, ISRSDistribution,
-    IRecentUnlock, ICriticalItem } from './typings/apiTypes';
+    IRecentUnlock, ICriticalItem, ILeveledItem,
+    IRadical } from './typings/apiTypes';
 import { IFetcher, Fetcher } from './fetcher';
 
 interface ICache<T> {
     lastUpdated: number;
     data: T;
+}
+
+interface ILevelCache<T> {
+    [key: number]: ICache<T>;
 }
 
 export interface IWkApi {
@@ -30,10 +35,11 @@ export class WkApi implements IWkApi {
     private _srsDistribution: ICache<ISRSDistribution> = <ICache<ISRSDistribution>> {};
     private _recentUnlocks: ICache<IRecentUnlock[]> = <ICache<IRecentUnlock[]>> {};
     private _criticalItems: ICache<ICriticalItem[]> = <ICache<ICriticalItem[]>> {};
+    private _radicals: ILevelCache<IRadical[]> = <ILevelCache<IRadical[]>> {};
 
     private _storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
         '_srsDistribution', '_recentUnlocks', '_criticalItems',
-        '_lastCriticalRate'];
+        '_lastCriticalRate', '_radicals'];
     
     constructor(private _apiKey: string) {
         // validate apiKey format
@@ -152,12 +158,120 @@ export class WkApi implements IWkApi {
             }).catch(reject);
         });
     }
+
+    // Returns the radicals for the specified levels.
+    // levels can be requested in multiple ways: a specific number,
+    // a comma delimited string, an array of numbers, or a string range
+    // eg: '1-20', inclusive, or both eg: '1-20,25'
+    public getRadicals(levels: number | number[] | string): Promise<IRadical[]> {
+        if (!this._radicals) this._radicals = {};
+
+        let parsedLevels = this._parseLevelRequest(levels);
+        let requiredLevels = this._findUncachedLevels(this._radicals, parsedLevels);
+        
+        let completeCall = (): IRadical[] => {
+            return parsedLevels.reduce((array: IRadical[], level: number) => {
+                if (this._radicals[level]) {
+                    return array.concat(this._radicals[level].data);
+                }
+                return array;
+            }, []);
+        };
+
+        if (requiredLevels.length == 0) {
+            return Promise.resolve(completeCall());
+        }
+
+        return new Promise<IRadical[]>((resolve, reject) => {
+            let data = this._fetcher.getData<IApiResponse<IRadical[]>>('radicals', requiredLevels.join(','));
+            data.then((value: IApiResponse<IRadical[]>) => {
+                let sorted = this._sortToLevels(value.requestedInformation);
+
+                for (let prop in sorted) {
+                    this._radicals[prop] = sorted[prop];
+                    this._radicals[prop].lastUpdated = this._getTime();
+                }
+                this._setCacheItem(this._userInformation, value);
+
+                resolve(completeCall());
+            });
+        });
+    }
     
     // Sets the expiry time in seconds
     public setExpiry(time: number): void {
         this._expiryTime = time;
     }
 
+    // Parses the incoming request string to create an array of numbers
+    private _parseLevelRequest(levels: number | number[] | string): number[]{
+        if (typeof levels === 'number') {
+            return [levels];
+        }
+        if (levels instanceof Array) {
+            return levels;
+        }
+        let stringLevels: string[] = (<string> levels).split(',');
+        return stringLevels.reduce((array: number[], value: string): number[] => {
+            return array.concat(this._parseLevelString(value)).reduce((array: number[], value: number) => {
+                if (array.indexOf(value) < 0) array.push(value);
+                return array;
+            }, []);
+        }, []).sort((a: number, b: number) => a - b);
+    }
+
+    // parses a list item to create an array of numbers, inclusive
+    private _parseLevelString(level: string): number[] {
+        if (level.indexOf('-') === -1) {
+            return [Number(level)];
+        }
+
+        let endPoints: string[] = level.split('-');
+        if (endPoints.length !== 2) {
+            throw 'Invalid level request string';
+        }
+
+        let start = Number(endPoints[0]);
+        let end = Number(endPoints[1]);
+        // ensure endpoints in proper order
+        if (start > end) {
+            throw 'Invalid level request string';
+        }
+
+        let levelArray: number[] = [];
+        while (start <= end) {
+            levelArray.push(start++);
+        }
+        return levelArray;
+    }
+
+    // Finds any levels where the cache is no longer valid, or does not exist
+    private _findUncachedLevels(cache: ILevelCache<any>, levels: number[]): number[]{
+        let uncached: number[] = [];
+        if (!cache) cache = {};
+        for (let level of levels) {
+            if (!cache[level] || (cache[level] && !this._isValid(cache[level]))) {
+                uncached.push(level);
+            }
+        }
+        return uncached;
+    }
+
+    // Returns an input of an array of leveled items into their appropriate levels
+    private _sortToLevels<T>(items: T[]): ILevelCache<T[]> {
+        let finalObject: ILevelCache<T[]> = {};
+
+        items.forEach((item: T) => {
+            if (!finalObject[(<any>item).level]) {
+                finalObject[(<any>item).level] = { lastUpdated: null, data: <T[]>[]};
+            }
+            finalObject[(<any>item).level].data.push(item);
+        });
+
+        return finalObject;
+    }
+
+    // Sets the caching to the supplied cache object for the api Item
     private _setCacheItem(cacheItem: ICache<{}>, apiItem: IApiResponse<{}>) {
         if (apiItem.requestedInformation) {
             cacheItem.data = apiItem.requestedInformation;

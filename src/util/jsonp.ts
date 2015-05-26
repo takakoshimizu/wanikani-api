@@ -21,8 +21,12 @@ export var jsonp = <T>(url: string): Promise<T> => {
 		script.onerror = reject;
 		
 		document.body.appendChild(script);
-		(<any>window)[callbackName] = (data: any) => {
-			resolve(convertCase(data));
+        (<any>window)[callbackName] = (data: any) => {
+            if (data.error) {
+                reject(data.error);
+            } else {
+                resolve(convertCase(data));
+            }
 			
 			(<any>window)[callbackName] = null;
 			delete (<any>window)[callbackName];

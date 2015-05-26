@@ -3,7 +3,10 @@
     requestedInformation: T;
 }
 
-export interface IApiInformation {}
+export interface IApiInformation { }
+export interface ILeveledItem {
+    level: number;
+}
 
 export interface IUserInformation extends IApiInformation {
     username: string;
@@ -64,4 +67,31 @@ export interface IRecentUnlock extends IApiInformation {
 
 export interface ICriticalItem extends IRecentUnlock {
     percentage: number;
+}
+
+export interface IUserSpecific {
+    srs: string;
+    srsNumeric: number;
+    unlockedDate: number;
+    availableDate: number;
+    burned: boolean;
+    burnedDate?: number;
+    meaningCorrect: number;
+    meaningIncorrect: number;
+    meaningMaxStreak: number;
+    meaningCurrentStreak: number;
+    readingCorrect: number;
+    readingIncorrect: number;
+    readingMaxStreak: number;
+    readingCurrentStreak: number;
+    meaningNote?: string;
+    readingNote?: string;
+    userSynonyms?: string;
+}
+
+export interface IRadical extends IApiInformation, ILeveledItem {
+    character?: string;
+    meaning: string;
+    image?: string;
+    userSpecific: IUserSpecific;
 }
