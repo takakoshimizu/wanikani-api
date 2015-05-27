@@ -23,6 +23,18 @@
         <div>
             How Many?<input id="recentUnlocksCount" value="10" /> <button id="recentUnlocks">Recent Unlocks</button>
         </div>
+        <div>
+            Correct Rate? <input id="critRate" value="75" /> <button id="critItems">Critical Items</button>
+        </div>
+        <div>
+            Radical levels? <input id="radLevels" value="1,2,5-10,25" /> <button id="radicals">Radicals</button>
+        </div>
+        <div>
+            Kanji levels? <input id="kanLevels" value="1-30" /> <button id="kanji">Kanji</button>
+        </div>
+        <div>
+            Vocab levels? <input id="vocLevels" value="5-10" /> <button id="vocab">Vocab</button>
+        </div>
     </div>
 
     <script type="text/javascript">
@@ -78,6 +90,34 @@
             document.getElementById('recentUnlocks').addEventListener('click', function () {
                 var count = document.getElementById('recentUnlocksCount').value;
                 wk.getRecentUnlocks(count).then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('critItems').addEventListener('click', function () {
+                var rate = document.getElementById('critRate').value;
+                wk.getCriticalItems(rate).then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('radicals').addEventListener('click', function () {
+                var levels = document.getElementById('radLevels').value;
+                wk.getRadicals(levels).then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('kanji').addEventListener('click', function () {
+                var levels = document.getElementById('kanLevels').value;
+                wk.getKanji(levels).then(function (results) {
+                    testInfo.value = JSON.stringify(results);
+                });
+            });
+
+            document.getElementById('vocab').addEventListener('click', function () {
+                var levels = document.getElementById('vocLevels').value;
+                wk.getVocabulary(levels).then(function (results) {
                     testInfo.value = JSON.stringify(results);
                 });
             });
