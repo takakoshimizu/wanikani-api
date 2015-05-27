@@ -73,6 +73,7 @@ var WkApi = (function () {
     function WkApi(_apiKey) {
         this._apiKey = _apiKey;
         this._expiryTime = 3600;
+        this._levelsPerRequest = 25;
         this._lastCriticalRate = 0;
         this._userInformation = {};
         this._studyQueue = {};
@@ -81,9 +82,10 @@ var WkApi = (function () {
         this._recentUnlocks = {};
         this._criticalItems = {};
         this._radicals = {};
+        this._kanji = {};
         this._storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
             '_srsDistribution', '_recentUnlocks', '_criticalItems',
-            '_lastCriticalRate', '_radicals'];
+            '_lastCriticalRate', '_radicals', '_kanji'];
         if (_apiKey.length !== 32 || !_apiKey.match(/[A-z0-9]{32}/)) {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
@@ -184,32 +186,51 @@ var WkApi = (function () {
             this._radicals = {};
         var parsedLevels = this._parseLevelRequest(levels);
         var requiredLevels = this._findUncachedLevels(this._radicals, parsedLevels);
-        var completeCall = function () {
-            return parsedLevels.reduce(function (array, level) {
-                if (_this._radicals[level]) {
-                    return array.concat(_this._radicals[level].data);
-                }
-                return array;
-            }, []);
-        };
         if (requiredLevels.length == 0) {
-            return Promise.resolve(completeCall());
+            return Promise.resolve(this._pickCacheLevels(this._radicals, parsedLevels));
         }
         return new Promise(function (resolve, reject) {
             var data = _this._fetcher.getData('radicals', requiredLevels.join(','));
             data.then(function (value) {
                 var sorted = _this._sortToLevels(value.requestedInformation);
-                for (var prop in sorted) {
-                    _this._radicals[prop] = sorted[prop];
-                    _this._radicals[prop].lastUpdated = _this._getTime();
-                }
+                _this._cacheToLevels(_this._radicals, sorted);
                 _this._setCacheItem(_this._userInformation, value);
-                resolve(completeCall());
+                resolve(_this._pickCacheLevels(_this._radicals, parsedLevels));
+            });
+        });
+    };
+    WkApi.prototype.getKanji = function (levels) {
+        var _this = this;
+        if (!this._kanji)
+            this._kanji = {};
+        var parsedLevels = this._parseLevelRequest(levels);
+        var requiredLevels = this._findUncachedLevels(this._kanji, parsedLevels);
+        if (requiredLevels.length == 0) {
+            return Promise.resolve(this._pickCacheLevels(this._kanji, parsedLevels));
+        }
+        return new Promise(function (resolve, reject) {
+            var kanjiPromises = [];
+            while (requiredLevels.length > 0) {
+                kanjiPromises.push(_this._fetcher.getData('kanji', requiredLevels.splice(0, 25).join(',')));
+            }
+            return Promise.all(kanjiPromises).then(function (results) {
+                var mergedArray = [];
+                for (var _i = 0; _i < results.length; _i++) {
+                    var result = results[_i];
+                    mergedArray = mergedArray.concat(result.requestedInformation);
+                }
+                var sorted = _this._sortToLevels(mergedArray);
+                _this._cacheToLevels(_this._kanji, sorted);
+                _this._setCacheItem(_this._userInformation, results[0]);
+                resolve(_this._pickCacheLevels(_this._kanji, parsedLevels));
             });
         });
     };
     WkApi.prototype.setExpiry = function (time) {
         this._expiryTime = time;
+    };
+    WkApi.prototype.setLevelsPerRequest = function (levels) {
+        this._levelsPerRequest = levels;
     };
     WkApi.prototype._parseLevelRequest = function (levels) {
         var _this = this;
@@ -268,6 +289,21 @@ var WkApi = (function () {
             finalObject[item.level].data.push(item);
         });
         return finalObject;
+    };
+    WkApi.prototype._cacheToLevels = function (cache, toCache) {
+        for (var prop in toCache) {
+            cache[prop] = toCache[prop];
+            cache[prop].lastUpdated = this._getTime();
+        }
+        return cache;
+    };
+    WkApi.prototype._pickCacheLevels = function (cache, levels) {
+        return levels.reduce(function (array, level) {
+            if (cache[level] && cache[level].data) {
+                return array.concat(cache[level].data);
+            }
+            return array;
+        }, []);
     };
     WkApi.prototype._setCacheItem = function (cacheItem, apiItem) {
         if (apiItem.requestedInformation) {

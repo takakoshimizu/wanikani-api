@@ -95,3 +95,21 @@ export interface IRadical extends IApiInformation, ILeveledItem {
     image?: string;
     userSpecific: IUserSpecific;
 }
+
+export interface IKanji extends IApiInformation, ILeveledItem {
+    character: string;
+    meaning: string;
+    onyomi: string;
+    kunyomi: string;
+    importantReading: string;
+    level: number;
+    userSpecific: IUserSpecific;
+}
+
+export interface IVocab extends IApiInformation, ILeveledItem {
+    character: string;
+    kana: string;
+    meaning: string;
+    level: number;
+    userSpecific: IUserSpecific;
+}
