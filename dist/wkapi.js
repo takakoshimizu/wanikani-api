@@ -83,9 +83,10 @@ var WkApi = (function () {
         this._criticalItems = {};
         this._radicals = {};
         this._kanji = {};
+        this._vocab = {};
         this._storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
             '_srsDistribution', '_recentUnlocks', '_criticalItems',
-            '_lastCriticalRate', '_radicals', '_kanji'];
+            '_lastCriticalRate', '_radicals', '_kanji', '_vocab'];
         if (_apiKey.length !== 32 || !_apiKey.match(/[A-z0-9]{32}/)) {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
@@ -223,6 +224,33 @@ var WkApi = (function () {
                 _this._cacheToLevels(_this._kanji, sorted);
                 _this._setCacheItem(_this._userInformation, results[0]);
                 resolve(_this._pickCacheLevels(_this._kanji, parsedLevels));
+            });
+        });
+    };
+    WkApi.prototype.getVocabulary = function (levels) {
+        var _this = this;
+        if (!this._vocab)
+            this._vocab = {};
+        var parsedLevels = this._parseLevelRequest(levels);
+        var requiredLevels = this._findUncachedLevels(this._vocab, parsedLevels);
+        if (requiredLevels.length == 0) {
+            return Promise.resolve(this._pickCacheLevels(this._vocab, parsedLevels));
+        }
+        return new Promise(function (resolve, reject) {
+            var vocabPromises = [];
+            while (requiredLevels.length > 0) {
+                vocabPromises.push(_this._fetcher.getData('vocabulary', requiredLevels.splice(0, 25).join(',')));
+            }
+            return Promise.all(vocabPromises).then(function (results) {
+                var mergedArray = [];
+                for (var _i = 0; _i < results.length; _i++) {
+                    var result = results[_i];
+                    mergedArray = mergedArray.concat(result.requestedInformation);
+                }
+                var sorted = _this._sortToLevels(mergedArray);
+                _this._cacheToLevels(_this._vocab, sorted);
+                _this._setCacheItem(_this._userInformation, results[0]);
+                resolve(_this._pickCacheLevels(_this._vocab, parsedLevels));
             });
         });
     };

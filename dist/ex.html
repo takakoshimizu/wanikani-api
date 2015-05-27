@@ -27,6 +27,9 @@
     <div>
         Kanji levels? <input id="kanLevels" value="1-30" /> <button id="kanji">Kanji</button>
     </div>
+    <div>
+        Vocab levels? <input id="vocLevels" value="5-10" /> <button id="vocab">Vocab</button>
+    </div>
 
     <script type="text/javascript">
         var wk = new WkApi('API_KEY_HERE');
@@ -82,6 +85,13 @@
         document.getElementById('kanji').addEventListener('click', function () {
             var levels = document.getElementById('kanLevels').value;
             wk.getKanji(levels).then(function (results) {
+                testInfo.value = JSON.stringify(results);
+            });
+        });
+
+        document.getElementById('vocab').addEventListener('click', function () {
+            var levels = document.getElementById('vocLevels').value;
+            wk.getVocabulary(levels).then(function (results) {
                 testInfo.value = JSON.stringify(results);
             });
         });

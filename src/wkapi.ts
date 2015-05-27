@@ -39,10 +39,11 @@ export class WkApi implements IWkApi {
     private _criticalItems: ICache<ICriticalItem[]> = <ICache<ICriticalItem[]>> {};
     private _radicals: ILevelCache<IRadical[]> = <ILevelCache<IRadical[]>> {};
     private _kanji: ILevelCache<IKanji[]> = <ILevelCache<IKanji[]>> {};
+    private _vocab: ILevelCache<IVocab[]> = <ILevelCache<IVocab[]>> {};
 
     private _storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
         '_srsDistribution', '_recentUnlocks', '_criticalItems',
-        '_lastCriticalRate', '_radicals', '_kanji'];
+        '_lastCriticalRate', '_radicals', '_kanji', '_vocab'];
     
     constructor(private _apiKey: string) {
         // validate apiKey format
@@ -223,7 +224,42 @@ export class WkApi implements IWkApi {
             });
         });
     }
-    
+
+    // Returns the vocabulary for the specified levels
+    // levels can be requested in multiple ways. See getRadicals
+    // for more information.
+    // Also splits large requests in half
+    public getVocabulary(levels: number | number[] | string): Promise <IVocab[] > {
+        if (!this._vocab) this._vocab = {};
+
+        let parsedLevels = this._parseLevelRequest(levels);
+        let requiredLevels = this._findUncachedLevels(this._vocab, parsedLevels);
+
+        if (requiredLevels.length == 0) {
+            return Promise.resolve(this._pickCacheLevels<IVocab>(this._vocab, parsedLevels));
+        }
+
+        return new Promise<IVocab[]>((resolve, reject) => {
+            let vocabPromises: Array<Promise<IApiResponse<IVocab[]>>> = [];
+            while (requiredLevels.length > 0) {
+                vocabPromises.push(this._fetcher.getData<IApiResponse<IVocab[]>>('vocabulary', requiredLevels.splice(0, 25).join(',')));
+            }
+
+            return Promise.all(vocabPromises).then((results: Array<IApiResponse<IVocab[]>>) => {
+                let mergedArray: IVocab[] = [];
+                for (let result of results) {
+                    mergedArray = mergedArray.concat(result.requestedInformation);
+                }
+                let sorted = this._sortToLevels(mergedArray);
+
+                this._cacheToLevels<IVocab>(this._vocab, sorted);
+                this._setCacheItem(this._userInformation, results[0]);
+                
+                resolve(this._pickCacheLevels<IVocab>(this._vocab, parsedLevels));
+            });
+        });
+    }
+
     // Sets the expiry time in seconds
     public setExpiry(time: number): void {
         this._expiryTime = time;
