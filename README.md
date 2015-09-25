@@ -59,8 +59,8 @@ wk.getKanji([1,10]).then(function(kanji) {
 	}
 });
 
-wk.getVocabulary('1-10,15,20-30,35,40-50').then(function(radicals) {
-	console.log('In levels 1-10, 15, 20-30, 35, and 40-50, you learned ' + radicals.length + ' words.');
+wk.getVocabulary('1-10,15,20-30,35,40-50').then(function(words) {
+	console.log('In levels 1-10, 15, 20-30, 35, and 40-50, you learned ' + words.length + ' words.');
 });
 ```
 
@@ -136,13 +136,13 @@ The classes methods are used as follows:
      - The argument `levels` is identical in usage to `getRadicals(number)`
 	 - Items are cached on a per-level basis.
 	 - Only uncached levels will be requested from the server.
-	 - Large requests will be split into no more than 25 levels per request.
+	 - Large requests will be split into no more than 20 levels per request.
 	 - Large requests will automatically be reassembled for the user.
    - `getVocabulary(levels: number | number[] | string)` -> `ES6 promise containing an array of vocabulary.`
      - The argument `levels` is identical in usage to `getRadicals(number)`
 	 - Items are cached on a per-level basis.
 	 - Only uncached levels will be requested from the server.
-	 - Large requests will be split into no more than 25 levels per request.
+	 - Large requests will be split into no more than 20 levels per request.
 	 - Large requests will automatically be reassembled for the user.
     - `setExpiry(time: number)` -> `void`
 	  - The argument `time` is a number in seconds for the cache information to last.
@@ -150,4 +150,4 @@ The classes methods are used as follows:
 	- `setLevelsPerRequest(levels: number)` -> `void`
 	  - The argument `levels` is a number to indicate the maximum number of levels in a single request.
 	  - This argument only applies to `getKanji(number)` and `getVocabulary(number)`
-	  - Defaults to 25.
+	  - Defaults to 20.

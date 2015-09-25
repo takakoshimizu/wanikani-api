@@ -1,4 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
+var wkapi_1 = require('./wkapi');
+global.WkApi = wkapi_1.WkApi;
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./wkapi":5}],2:[function(require,module,exports){
 /// <reference path="typings/promise.d.ts" />
 var jsonp_1 = require('./util/jsonp');
 var Fetcher = (function () {
@@ -20,7 +26,7 @@ var Fetcher = (function () {
 })();
 exports.Fetcher = Fetcher;
 
-},{"./util/jsonp":2}],2:[function(require,module,exports){
+},{"./util/jsonp":3}],3:[function(require,module,exports){
 /// <reference path="../typings/promise.d.ts" />
 var objectConvert_1 = require('./objectConvert');
 exports.jsonp = function (url) {
@@ -51,7 +57,7 @@ exports.jsonp = function (url) {
     });
 };
 
-},{"./objectConvert":3}],3:[function(require,module,exports){
+},{"./objectConvert":4}],4:[function(require,module,exports){
 exports.convertCase = function (obj) {
     if (!obj || typeof obj !== "object")
         return obj;
@@ -66,14 +72,14 @@ exports.convertCase = function (obj) {
     return newObj;
 };
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /// <reference path="./typings/promise.d.ts" />
 var fetcher_1 = require('./fetcher');
 var WkApi = (function () {
     function WkApi(_apiKey) {
         this._apiKey = _apiKey;
         this._expiryTime = 3600;
-        this._levelsPerRequest = 25;
+        this._levelsPerRequest = 20;
         this._lastCriticalRate = 0;
         this._userInformation = {};
         this._studyQueue = {};
@@ -100,70 +106,43 @@ var WkApi = (function () {
         if (this._isValid(this._userInformation)) {
             return Promise.resolve(this._userInformation.data);
         }
-        return new Promise(function (resolve, reject) {
-            var data = _this._fetcher.getData('user-information');
-            data.then(function (value) {
-                _this._setCacheItem(_this._userInformation, value);
-                resolve(value.userInformation);
-            }).catch(reject);
-        });
+        return this._fetcher.getData('user-information')
+            .then(function (value) { return _this._setCacheItem(_this._userInformation, value); });
     };
     WkApi.prototype.getStudyQueue = function () {
         var _this = this;
         if (this._isValid(this._studyQueue)) {
             return Promise.resolve(this._studyQueue.data);
         }
-        return new Promise(function (resolve, reject) {
-            var data = _this._fetcher.getData('study-queue');
-            data.then(function (value) {
-                _this._setCacheItem(_this._studyQueue, value);
-                resolve(value.requestedInformation);
-            }).catch(reject);
-        });
+        return this._fetcher.getData('study-queue')
+            .then(function (value) { return _this._setCacheItem(_this._studyQueue, value); });
     };
     WkApi.prototype.getLevelProgression = function () {
         var _this = this;
         if (this._isValid(this._levelProgress)) {
             return Promise.resolve(this._levelProgress.data);
         }
-        return new Promise(function (resolve, reject) {
-            var data = _this._fetcher.getData('level-progression');
-            data.then(function (value) {
-                _this._setCacheItem(_this._levelProgress, value);
-                resolve(value.requestedInformation);
-            }).catch(reject);
-        });
+        return this._fetcher.getData('level-progression')
+            .then(function (value) { return _this._setCacheItem(_this._levelProgress, value); });
     };
     WkApi.prototype.getSrsDistribution = function () {
         var _this = this;
         if (this._isValid(this._srsDistribution)) {
             return Promise.resolve(this._srsDistribution.data);
         }
-        return new Promise(function (resolve, reject) {
-            var data = _this._fetcher.getData('srs-distribution');
-            data.then(function (value) {
-                _this._setCacheItem(_this._srsDistribution, value);
-                resolve(value.requestedInformation);
-            }).catch(reject);
-        });
+        return this._fetcher.getData('srs-distribution')
+            .then(function (value) { return _this._setCacheItem(_this._srsDistribution, value); });
     };
     WkApi.prototype.getRecentUnlocks = function (count) {
         var _this = this;
         if (count === void 0) { count = 10; }
-        var overrideCache = false;
-        if (this._recentUnlocks.data) {
-            overrideCache = this._recentUnlocks.data.length != count;
-        }
+        var overrideCache = this._recentUnlocks.data
+            && this._recentUnlocks.data.length != count;
         if (this._isValid(this._recentUnlocks) && !overrideCache) {
             return Promise.resolve(this._recentUnlocks.data);
         }
-        return new Promise(function (resolve, reject) {
-            var data = _this._fetcher.getData('recent-unlocks', count);
-            data.then(function (value) {
-                _this._setCacheItem(_this._recentUnlocks, value);
-                resolve(value.requestedInformation);
-            }).catch(reject);
-        });
+        return this._fetcher.getData('recent-unlocks', count)
+            .then(function (value) { return _this._setCacheItem(_this._recentUnlocks, value); });
     };
     WkApi.prototype.getCriticalItems = function (rate) {
         var _this = this;
@@ -173,13 +152,8 @@ var WkApi = (function () {
             return Promise.resolve(this._criticalItems.data);
         }
         this._lastCriticalRate = rate;
-        return new Promise(function (resolve, reject) {
-            var data = _this._fetcher.getData('critical-items', rate);
-            data.then(function (value) {
-                _this._setCacheItem(_this._criticalItems, value);
-                resolve(value.requestedInformation);
-            }).catch(reject);
-        });
+        return this._fetcher.getData('critical-items', rate)
+            .then(function (value) { return _this._setCacheItem(_this._criticalItems, value); });
     };
     WkApi.prototype.getRadicals = function (levels) {
         var _this = this;
@@ -190,14 +164,12 @@ var WkApi = (function () {
         if (requiredLevels.length == 0) {
             return Promise.resolve(this._pickCacheLevels(this._radicals, parsedLevels));
         }
-        return new Promise(function (resolve, reject) {
-            var data = _this._fetcher.getData('radicals', requiredLevels.join(','));
-            data.then(function (value) {
-                var sorted = _this._sortToLevels(value.requestedInformation);
-                _this._cacheToLevels(_this._radicals, sorted);
-                _this._setCacheItem(_this._userInformation, value);
-                resolve(_this._pickCacheLevels(_this._radicals, parsedLevels));
-            });
+        return this._fetcher.getData('radicals', requiredLevels.join(','))
+            .then(function (value) {
+            var sorted = _this._sortToLevels(value.requestedInformation);
+            _this._cacheToLevels(_this._radicals, sorted);
+            _this._setCacheItem(null, value);
+            return _this._pickCacheLevels(_this._radicals, parsedLevels);
         });
     };
     WkApi.prototype.getKanji = function (levels) {
@@ -209,22 +181,16 @@ var WkApi = (function () {
         if (requiredLevels.length == 0) {
             return Promise.resolve(this._pickCacheLevels(this._kanji, parsedLevels));
         }
-        return new Promise(function (resolve, reject) {
-            var kanjiPromises = [];
-            while (requiredLevels.length > 0) {
-                kanjiPromises.push(_this._fetcher.getData('kanji', requiredLevels.splice(0, 25).join(',')));
-            }
-            return Promise.all(kanjiPromises).then(function (results) {
-                var mergedArray = [];
-                for (var _i = 0; _i < results.length; _i++) {
-                    var result = results[_i];
-                    mergedArray = mergedArray.concat(result.requestedInformation);
-                }
-                var sorted = _this._sortToLevels(mergedArray);
-                _this._cacheToLevels(_this._kanji, sorted);
-                _this._setCacheItem(_this._userInformation, results[0]);
-                resolve(_this._pickCacheLevels(_this._kanji, parsedLevels));
-            });
+        var kanjiPromises = [];
+        while (requiredLevels.length > 0) {
+            kanjiPromises.push(this._fetcher.getData('kanji', requiredLevels.splice(0, this._levelsPerRequest).join(',')));
+        }
+        return Promise.all(kanjiPromises)
+            .then(function (values) {
+            var sorted = _this._sortToLevels(values.reduce(function (a, c) { return a.concat(c.requestedInformation); }, []));
+            _this._cacheToLevels(_this._kanji, sorted);
+            _this._setCacheItem(null, values[0]);
+            return _this._pickCacheLevels(_this._kanji, parsedLevels);
         });
     };
     WkApi.prototype.getVocabulary = function (levels) {
@@ -236,22 +202,16 @@ var WkApi = (function () {
         if (requiredLevels.length == 0) {
             return Promise.resolve(this._pickCacheLevels(this._vocab, parsedLevels));
         }
-        return new Promise(function (resolve, reject) {
-            var vocabPromises = [];
-            while (requiredLevels.length > 0) {
-                vocabPromises.push(_this._fetcher.getData('vocabulary', requiredLevels.splice(0, 25).join(',')));
-            }
-            return Promise.all(vocabPromises).then(function (results) {
-                var mergedArray = [];
-                for (var _i = 0; _i < results.length; _i++) {
-                    var result = results[_i];
-                    mergedArray = mergedArray.concat(result.requestedInformation);
-                }
-                var sorted = _this._sortToLevels(mergedArray);
-                _this._cacheToLevels(_this._vocab, sorted);
-                _this._setCacheItem(_this._userInformation, results[0]);
-                resolve(_this._pickCacheLevels(_this._vocab, parsedLevels));
-            });
+        var vocabPromises = [];
+        while (requiredLevels.length > 0) {
+            vocabPromises.push(this._fetcher.getData('vocabulary', requiredLevels.splice(0, this._levelsPerRequest).join(',')));
+        }
+        return Promise.all(vocabPromises)
+            .then(function (values) {
+            var sorted = _this._sortToLevels(values.reduce(function (a, c) { return a.concat(c.requestedInformation); }, []));
+            _this._cacheToLevels(_this._vocab, sorted);
+            _this._setCacheItem(null, values[0]);
+            return _this._pickCacheLevels(_this._vocab, parsedLevels);
         });
     };
     WkApi.prototype.setExpiry = function (time) {
@@ -269,13 +229,10 @@ var WkApi = (function () {
             return levels;
         }
         var stringLevels = levels.split(',');
-        return stringLevels.reduce(function (array, value) {
-            return array.concat(_this._parseLevelString(value)).reduce(function (array, value) {
-                if (array.indexOf(value) < 0)
-                    array.push(value);
-                return array;
-            }, []);
-        }, []).sort(function (a, b) { return a - b; });
+        return stringLevels.map(function (x) { return _this._parseLevelString(x); })
+            .reduce(function (arr, v) { return arr.concat(v); })
+            .filter(function (v, i, a) { return a.indexOf(v) == i; })
+            .sort(function (a, b) { return a - b; });
     };
     WkApi.prototype._parseLevelString = function (level) {
         if (level.indexOf('-') === -1) {
@@ -290,23 +247,12 @@ var WkApi = (function () {
         if (start > end) {
             throw 'Invalid level request string';
         }
-        var levelArray = [];
-        while (start <= end) {
-            levelArray.push(start++);
-        }
-        return levelArray;
+        return Array.apply(0, Array(end - start + 1))
+            .map(function (_, i) { return start + i; });
     };
     WkApi.prototype._findUncachedLevels = function (cache, levels) {
-        var uncached = [];
-        if (!cache)
-            cache = {};
-        for (var _i = 0; _i < levels.length; _i++) {
-            var level = levels[_i];
-            if (!cache[level] || (cache[level] && !this._isValid(cache[level]))) {
-                uncached.push(level);
-            }
-        }
-        return uncached;
+        var _this = this;
+        return levels.filter(function (l) { return !cache[l] || (cache[l] && !_this._isValid(cache[l])); });
     };
     WkApi.prototype._sortToLevels = function (items) {
         var finalObject = {};
@@ -319,10 +265,11 @@ var WkApi = (function () {
         return finalObject;
     };
     WkApi.prototype._cacheToLevels = function (cache, toCache) {
-        for (var prop in toCache) {
-            cache[prop] = toCache[prop];
-            cache[prop].lastUpdated = this._getTime();
-        }
+        var _this = this;
+        Object.keys(toCache).forEach(function (k) {
+            cache[k] = toCache[k];
+            cache[k].lastUpdated = _this._getTime();
+        });
         return cache;
     };
     WkApi.prototype._pickCacheLevels = function (cache, levels) {
@@ -334,17 +281,22 @@ var WkApi = (function () {
         }, []);
     };
     WkApi.prototype._setCacheItem = function (cacheItem, apiItem) {
-        if (apiItem.requestedInformation) {
+        var returnValue;
+        if (apiItem.requestedInformation && cacheItem) {
             cacheItem.data = apiItem.requestedInformation;
             cacheItem.lastUpdated = this._getTime();
+            returnValue = apiItem.requestedInformation;
         }
         if (apiItem.userInformation) {
             this._userInformation = {
                 data: apiItem.userInformation,
                 lastUpdated: this._getTime()
             };
+            if (!returnValue)
+                returnValue = apiItem.userInformation;
         }
         this._persistLocalStorage();
+        return returnValue;
     };
     WkApi.prototype._loadLocalStorage = function () {
         if (window.localStorage.getItem(this._apiKey)) {
@@ -384,10 +336,4 @@ var WkApi = (function () {
 })();
 exports.WkApi = WkApi;
 
-},{"./fetcher":1}],5:[function(require,module,exports){
-(function (global){
-var wkapi_1 = require('./wkapi');
-global.WkApi = wkapi_1.WkApi;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./wkapi":4}]},{},[5]);
+},{"./fetcher":2}]},{},[1]);

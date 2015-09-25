@@ -1,11 +1,11 @@
 {
   "name": "WanikaniApi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A small javascript library to facilitate easier client-only interaction with the Wanikani (http://wanikani.com) API.",
   "main": "src/wkapi.ts",
   "scripts": {
     "build": "tsc && browserify src/browser-shim.js -o dist/wkapi.js",
-    "prod": "tsc && browserify src/browser-shim.js -o dist/wkapi.js && uglifyjs dist/wkapi.js -cmo dist/wkapi.min.js",
+    "prod": "tsc && browserify src/browser-shim.js -o dist/wkapi.js && uglifyjs dist/wkapi.js --unsafe -cmo dist/wkapi.min.js",
     "test": ""
   },
   "repository": {
