@@ -5,30 +5,10 @@ import {
     IStudyQueue, ILevelProgress, ISRSDistribution,
     IRecentUnlock, ICriticalItem, ILeveledItem,
     IRadical, IKanji, IVocab } from './typings/apiTypes';
-import { IFetcher, Fetcher } from './fetcher';
-
-interface ICache<T> {
-    lastUpdated: number;
-    data: T;
-}
-
-interface ILevelCache<T> {
-    [key: number]: ICache<T>;
-}
-
-export interface IWkApi {
-    getUserInformation(): Promise<IUserInformation>;
-    getStudyQueue(): Promise<IStudyQueue>;
-    getLevelProgression(): Promise<ILevelProgress>;
-    getSrsDistribution(): Promise<ISRSDistribution>;
-    getRecentUnlocks(count: number): Promise<IRecentUnlock[]>;
-    getCriticalItems(rate: number): Promise<ICriticalItem[]>;
-    getRadicals(levels: number | number[] | string): Promise<IRadical[]>;
-    getKanji(levels: number | number[] | string): Promise<IKanji[]>;
-    getVocabulary(levels: number | number[] | string): Promise<IVocab[]>;
-    setExpiry(time: number): void;
-    setLevelsPerRequest(levels: number): void;
-}
+import { ICache, ILevelCache } from './typings/cache';
+import { IFetcher } from './typings/fetcher';
+import { IWkApi } from './typings/wkApi';
+import Fetcher from './fetcher';
 
 export class WkApi implements IWkApi {
     private _fetcher: IFetcher;

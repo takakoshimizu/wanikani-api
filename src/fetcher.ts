@@ -1,13 +1,10 @@
 /// <reference path="typings/promise.d.ts" />
 
+import { IFetcher } from './typings/fetcher';
 import { IApiResponse } from './typings/apiTypes';
 import { jsonp } from './util/jsonp';
 
-export interface IFetcher {
-	getData<T>(type: string, args?: number | string): Promise<T>;
-}
-
-export class Fetcher implements IFetcher {
+export default class Fetcher implements IFetcher {
 	private API_BASE = 'https://www.wanikani.com/api/v1.3/user/';
 	
 	constructor(private _apiKey: string){}
