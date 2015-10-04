@@ -24,7 +24,7 @@ var Fetcher = (function () {
     };
     return Fetcher;
 })();
-exports.Fetcher = Fetcher;
+exports["default"] = Fetcher;
 
 },{"./util/jsonp":3}],3:[function(require,module,exports){
 /// <reference path="../typings/promise.d.ts" />
@@ -78,6 +78,8 @@ var fetcher_1 = require('./fetcher');
 var WkApi = (function () {
     function WkApi(_apiKey) {
         this._apiKey = _apiKey;
+        this._maxLevel = 60;
+        this._levelRange = '1-' + this._maxLevel;
         this._expiryTime = 3600;
         this._levelsPerRequest = 20;
         this._lastCriticalRate = 0;
@@ -96,7 +98,7 @@ var WkApi = (function () {
         if (_apiKey.length !== 32 || !_apiKey.match(/[A-z0-9]{32}/)) {
             throw 'Invalid API Key. API Key must be 32 alphanumeric characters in length.';
         }
-        this._fetcher = new fetcher_1.Fetcher(_apiKey);
+        this._fetcher = new fetcher_1["default"](_apiKey);
         if (window.localStorage) {
             this._loadLocalStorage();
         }
@@ -157,61 +159,67 @@ var WkApi = (function () {
     };
     WkApi.prototype.getRadicals = function (levels) {
         var _this = this;
+        if (levels === void 0) { levels = this._levelRange; }
         if (!this._radicals)
             this._radicals = {};
-        var parsedLevels = this._parseLevelRequest(levels);
-        var requiredLevels = this._findUncachedLevels(this._radicals, parsedLevels);
-        if (requiredLevels.length == 0) {
-            return Promise.resolve(this._pickCacheLevels(this._radicals, parsedLevels));
-        }
-        return this._fetcher.getData('radicals', requiredLevels.join(','))
-            .then(function (value) {
-            var sorted = _this._sortToLevels(value.requestedInformation);
-            _this._cacheToLevels(_this._radicals, sorted);
-            _this._setCacheItem(null, value);
-            return _this._pickCacheLevels(_this._radicals, parsedLevels);
+        return this._parseLevelRequest(levels).then(function (parsedLevels) {
+            var requiredLevels = _this._findUncachedLevels(_this._radicals, parsedLevels);
+            if (requiredLevels.length == 0) {
+                return Promise.resolve(_this._pickCacheLevels(_this._radicals, parsedLevels));
+            }
+            return _this._fetcher.getData('radicals', requiredLevels.join(','))
+                .then(function (value) {
+                var sorted = _this._sortToLevels(value.requestedInformation);
+                _this._cacheToLevels(_this._radicals, sorted);
+                _this._setCacheItem(null, value);
+                return _this._pickCacheLevels(_this._radicals, parsedLevels);
+            });
         });
     };
     WkApi.prototype.getKanji = function (levels) {
         var _this = this;
+        if (levels === void 0) { levels = this._levelRange; }
         if (!this._kanji)
             this._kanji = {};
-        var parsedLevels = this._parseLevelRequest(levels);
-        var requiredLevels = this._findUncachedLevels(this._kanji, parsedLevels);
-        if (requiredLevels.length == 0) {
-            return Promise.resolve(this._pickCacheLevels(this._kanji, parsedLevels));
-        }
-        var kanjiPromises = [];
-        while (requiredLevels.length > 0) {
-            kanjiPromises.push(this._fetcher.getData('kanji', requiredLevels.splice(0, this._levelsPerRequest).join(',')));
-        }
-        return Promise.all(kanjiPromises)
-            .then(function (values) {
-            var sorted = _this._sortToLevels(values.reduce(function (a, c) { return a.concat(c.requestedInformation); }, []));
-            _this._cacheToLevels(_this._kanji, sorted);
-            _this._setCacheItem(null, values[0]);
-            return _this._pickCacheLevels(_this._kanji, parsedLevels);
+        return this._parseLevelRequest(levels).then(function (parsedLevels) {
+            var requiredLevels = _this._findUncachedLevels(_this._kanji, parsedLevels);
+            if (requiredLevels.length == 0) {
+                return Promise.resolve(_this._pickCacheLevels(_this._kanji, parsedLevels));
+            }
+            var kanjiPromises = [];
+            while (requiredLevels.length > 0) {
+                kanjiPromises.push(_this._fetcher.getData('kanji', requiredLevels.splice(0, _this._levelsPerRequest).join(',')));
+            }
+            return Promise.all(kanjiPromises)
+                .then(function (values) {
+                var sorted = _this._sortToLevels(values.reduce(function (a, c) { return a.concat(c.requestedInformation); }, []));
+                _this._cacheToLevels(_this._kanji, sorted);
+                _this._setCacheItem(null, values[0]);
+                return _this._pickCacheLevels(_this._kanji, parsedLevels);
+            });
         });
     };
     WkApi.prototype.getVocabulary = function (levels) {
         var _this = this;
+        if (levels === void 0) { levels = this._levelRange; }
         if (!this._vocab)
             this._vocab = {};
-        var parsedLevels = this._parseLevelRequest(levels);
-        var requiredLevels = this._findUncachedLevels(this._vocab, parsedLevels);
-        if (requiredLevels.length == 0) {
-            return Promise.resolve(this._pickCacheLevels(this._vocab, parsedLevels));
-        }
-        var vocabPromises = [];
-        while (requiredLevels.length > 0) {
-            vocabPromises.push(this._fetcher.getData('vocabulary', requiredLevels.splice(0, this._levelsPerRequest).join(',')));
-        }
-        return Promise.all(vocabPromises)
-            .then(function (values) {
-            var sorted = _this._sortToLevels(values.reduce(function (a, c) { return a.concat(c.requestedInformation); }, []));
-            _this._cacheToLevels(_this._vocab, sorted);
-            _this._setCacheItem(null, values[0]);
-            return _this._pickCacheLevels(_this._vocab, parsedLevels);
+        return this._parseLevelRequest(levels).then(function (parsedLevels) {
+            var requiredLevels = _this._findUncachedLevels(_this._vocab, parsedLevels);
+            if (requiredLevels.length == 0) {
+                return Promise.resolve(_this._pickCacheLevels(_this._vocab, parsedLevels));
+            }
+            var vocabPromises = [];
+            while (requiredLevels.length > 0) {
+                vocabPromises.push(_this._fetcher.getData('vocabulary', requiredLevels.splice(0, _this._levelsPerRequest).join(',')));
+            }
+            return Promise.all(vocabPromises)
+                .then(function (values) {
+                var sorted = _this._sortToLevels(values.reduce(function (a, c) { return a.concat(c.requestedInformation); }, []));
+                _this._cacheToLevels(_this._vocab, sorted);
+                _this._setCacheItem(null, values[0]);
+                return _this._pickCacheLevels(_this._vocab, parsedLevels);
+            });
         });
     };
     WkApi.prototype.setExpiry = function (time) {
@@ -222,17 +230,28 @@ var WkApi = (function () {
     };
     WkApi.prototype._parseLevelRequest = function (levels) {
         var _this = this;
-        if (typeof levels === 'number') {
-            return [levels];
-        }
-        if (levels instanceof Array) {
-            return levels;
-        }
-        var stringLevels = levels.split(',');
-        return stringLevels.map(function (x) { return _this._parseLevelString(x); })
-            .reduce(function (arr, v) { return arr.concat(v); })
-            .filter(function (v, i, a) { return a.indexOf(v) == i; })
-            .sort(function (a, b) { return a - b; });
+        return this.getUserInformation().then(function (ui) {
+            if (typeof levels === 'number') {
+                if (levels > ui.level)
+                    throw new Error('Requested level out of range.');
+                return [levels];
+            }
+            if (levels instanceof Array) {
+                var newLevels = levels.filter(function (x) { return x > 0 && x < ui.level; });
+                if (newLevels.length == 0)
+                    throw new Error('Requested levels out of range.');
+                return levels;
+            }
+            var stringLevels = levels.split(',');
+            var parsedLevels = stringLevels.map(function (x) { return _this._parseLevelString(x); })
+                .reduce(function (arr, v) { return arr.concat(v); })
+                .filter(function (v, i, a) { return a.indexOf(v) == i; })
+                .filter(function (x) { return x > 0 && x <= ui.level; })
+                .sort(function (a, b) { return a - b; });
+            if (parsedLevels.length == 0)
+                throw new Error('Requested levels out of range.');
+            return parsedLevels;
+        });
     };
     WkApi.prototype._parseLevelString = function (level) {
         if (level.indexOf('-') === -1) {
@@ -308,6 +327,8 @@ var WkApi = (function () {
         }
     };
     WkApi.prototype._persistLocalStorage = function () {
+        if (!window.localStorage)
+            return;
         var toStore = {};
         for (var _i = 0, _a = this._storageKeys; _i < _a.length; _i++) {
             var key = _a[_i];

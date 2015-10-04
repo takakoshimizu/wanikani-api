@@ -12,6 +12,8 @@ import Fetcher from './fetcher';
 
 export class WkApi implements IWkApi {
     private _fetcher: IFetcher;
+    private _maxLevel = 60;
+    private _levelRange = '1-' + this._maxLevel;
     private _expiryTime: number = 3600; // seconds
     private _levelsPerRequest: number = 20;
     private _lastCriticalRate: number = 0;
@@ -28,7 +30,7 @@ export class WkApi implements IWkApi {
     private _storageKeys = ['_userInformation', '_studyQueue', '_levelProgress',
         '_srsDistribution', '_recentUnlocks', '_criticalItems',
         '_lastCriticalRate', '_radicals', '_kanji', '_vocab'];
-    
+
     constructor(private _apiKey: string) {
         // validate apiKey format
         if (_apiKey.length !== 32 || !_apiKey.match(/[A-z0-9]{32}/)) {
@@ -42,7 +44,7 @@ export class WkApi implements IWkApi {
             this._loadLocalStorage();
         }
     }
-    
+
     // Returns the cached user information in a promise if still valid.
     // Otherwise, returns a promise containing incoming information
     public getUserInformation(): Promise<IUserInformation> {
@@ -119,85 +121,88 @@ export class WkApi implements IWkApi {
     // levels can be requested in multiple ways: a specific number,
     // a comma delimited string, an array of numbers, or a string range
     // eg: '1-20', inclusive, or both eg: '1-20,25'
-    public getRadicals(levels: number | number[] | string): Promise<IRadical[]> {
+    public getRadicals(levels: number | number[] | string = this._levelRange): Promise<IRadical[]> {
         if (!this._radicals) this._radicals = {};
 
-        let parsedLevels = this._parseLevelRequest(levels);
-        let requiredLevels = this._findUncachedLevels(this._radicals, parsedLevels);
+        return this._parseLevelRequest(levels).then(parsedLevels => {
+          let requiredLevels = this._findUncachedLevels(this._radicals, parsedLevels);
 
-        if (requiredLevels.length == 0) {
-            return Promise.resolve(this._pickCacheLevels<IRadical>(this._radicals, parsedLevels));
-        }
+          if (requiredLevels.length == 0) {
+              return Promise.resolve(this._pickCacheLevels<IRadical>(this._radicals, parsedLevels));
+          }
 
-        return this._fetcher.getData<IApiResponse<IRadical[]>>('radicals', requiredLevels.join(','))
-            .then(value => {
-                let sorted = this._sortToLevels(value.requestedInformation);
+          return this._fetcher.getData<IApiResponse<IRadical[]>>('radicals', requiredLevels.join(','))
+              .then(value => {
+                  let sorted = this._sortToLevels(value.requestedInformation);
 
-                this._cacheToLevels(this._radicals, sorted);
-                this._setCacheItem(null, value);
+                  this._cacheToLevels(this._radicals, sorted);
+                  this._setCacheItem(null, value);
 
-                return this._pickCacheLevels(this._radicals, parsedLevels);
-            });
+                  return this._pickCacheLevels(this._radicals, parsedLevels);
+              });
+        });
     }
 
     // Returns the kanji for the specified levels
     // levels can be requested in multiple ways. See getRadicals
     // for more information.
     // Also splits large requests in half.
-    public getKanji(levels: number | number[] | string): Promise<IKanji[]> {
+    public getKanji(levels: number | number[] | string = this._levelRange): Promise<IKanji[]> {
         if (!this._kanji) this._kanji = {};
 
-        let parsedLevels = this._parseLevelRequest(levels);
-        let requiredLevels = this._findUncachedLevels(this._kanji, parsedLevels);
+        return this._parseLevelRequest(levels).then(parsedLevels => {
+          let requiredLevels = this._findUncachedLevels(this._kanji, parsedLevels);
 
-        if (requiredLevels.length == 0) {
-            return Promise.resolve(this._pickCacheLevels(this._kanji, parsedLevels));
-        }
+          if (requiredLevels.length == 0) {
+              return Promise.resolve(this._pickCacheLevels(this._kanji, parsedLevels));
+          }
 
-        let kanjiPromises: Array<Promise<IApiResponse<IKanji[]>>> = [];
-        while (requiredLevels.length > 0) {
-            kanjiPromises.push(this._fetcher.getData<IApiResponse<IKanji[]>>('kanji',
-                requiredLevels.splice(0, this._levelsPerRequest).join(',')));
-        }
+          let kanjiPromises: Array<Promise<IApiResponse<IKanji[]>>> = [];
+          while (requiredLevels.length > 0) {
+              kanjiPromises.push(this._fetcher.getData<IApiResponse<IKanji[]>>('kanji',
+                  requiredLevels.splice(0, this._levelsPerRequest).join(',')));
+          }
 
-        return Promise.all(kanjiPromises)
-            .then(values => {
-                let sorted = this._sortToLevels(values.reduce((a, c) => a.concat(c.requestedInformation), []));
-                this._cacheToLevels(this._kanji, sorted);
-                this._setCacheItem(null, values[0]);
+          return Promise.all(kanjiPromises)
+              .then(values => {
+                  let sorted = this._sortToLevels(values.reduce((a, c) => a.concat(c.requestedInformation), []));
+                  this._cacheToLevels(this._kanji, sorted);
+                  this._setCacheItem(null, values[0]);
 
-                return this._pickCacheLevels(this._kanji, parsedLevels);
-            });
+                  return this._pickCacheLevels(this._kanji, parsedLevels);
+              });
+        });
     }
 
     // Returns the vocabulary for the specified levels
     // levels can be requested in multiple ways. See getRadicals
     // for more information.
     // Also splits large requests in half
-    public getVocabulary(levels: number | number[] | string): Promise<IVocab[]> {
+    public getVocabulary(levels: number | number[] | string = this._levelRange): Promise<IVocab[]> {
         if (!this._vocab) this._vocab = {};
 
-        let parsedLevels = this._parseLevelRequest(levels);
-        let requiredLevels = this._findUncachedLevels(this._vocab, parsedLevels);
+        return this._parseLevelRequest(levels).then(parsedLevels => {
+          let requiredLevels = this._findUncachedLevels(this._vocab, parsedLevels);
 
-        if (requiredLevels.length == 0) {
-            return Promise.resolve(this._pickCacheLevels<IVocab>(this._vocab, parsedLevels));
-        }
+          if (requiredLevels.length == 0) {
+              return Promise.resolve(this._pickCacheLevels<IVocab>(this._vocab, parsedLevels));
+          }
 
-        let vocabPromises: Array<Promise<IApiResponse<IVocab[]>>> = [];
-        while (requiredLevels.length > 0) {
-            vocabPromises.push(this._fetcher.getData<IApiResponse<IVocab[]>>('vocabulary',
-                requiredLevels.splice(0, this._levelsPerRequest).join(',')));
-        }
+          let vocabPromises: Array<Promise<IApiResponse<IVocab[]>>> = [];
+          while (requiredLevels.length > 0) {
+              vocabPromises.push(this._fetcher.getData<IApiResponse<IVocab[]>>('vocabulary',
+                  requiredLevels.splice(0, this._levelsPerRequest).join(',')));
+          }
 
-        return Promise.all(vocabPromises)
-            .then(values => {
-                let sorted = this._sortToLevels(values.reduce((a, c) => a.concat(c.requestedInformation), []));
+          return Promise.all(vocabPromises)
+              .then(values => {
+                  let sorted = this._sortToLevels(values.reduce((a, c) => a.concat(c.requestedInformation), []));
 
-                this._cacheToLevels(this._vocab, sorted);
-                this._setCacheItem(null, values[0]);
-                return this._pickCacheLevels(this._vocab, parsedLevels);
-            });
+                  this._cacheToLevels(this._vocab, sorted);
+                  this._setCacheItem(null, values[0]);
+                  return this._pickCacheLevels(this._vocab, parsedLevels);
+              });
+        });
     }
 
     // Sets the expiry time in seconds
@@ -212,18 +217,26 @@ export class WkApi implements IWkApi {
     }
 
     // Parses the incoming request string to create an array of numbers
-    private _parseLevelRequest(levels: number | number[] | string): number[]{
-        if (typeof levels === 'number') {
-            return [levels];
-        }
-        if (levels instanceof Array) {
-            return levels;
-        }
-        let stringLevels: string[] = (<string> levels).split(',');
-        return stringLevels.map(x => this._parseLevelString(x))
-            .reduce((arr, v) => arr.concat(v))
-            .filter((v, i, a) => a.indexOf(v) == i)
-            .sort((a, b) => a - b);
+    private _parseLevelRequest(levels: number | number[] | string): Promise<number[]> {
+        return this.getUserInformation().then(ui => {
+          if (typeof levels === 'number') {
+              if (levels > ui.level) throw new Error('Requested level out of range.');
+              return [levels];
+          }
+          if (levels instanceof Array) {
+              let newLevels = levels.filter(x => x > 0 && x < ui.level);
+              if (newLevels.length == 0) throw new Error('Requested levels out of range.');
+              return levels;
+          }
+          let stringLevels: string[] = (<string> levels).split(',');
+          let parsedLevels = stringLevels.map(x => this._parseLevelString(x))
+              .reduce((arr, v) => arr.concat(v))
+              .filter((v, i, a) => a.indexOf(v) == i)
+              .filter(x => x > 0 && x <= ui.level)
+              .sort((a, b) => a - b);
+          if (parsedLevels.length == 0) throw new Error('Requested levels out of range.');
+          return parsedLevels;
+        });
     }
 
     // parses a list item to create an array of numbers, inclusive
@@ -320,6 +333,7 @@ export class WkApi implements IWkApi {
 
     // Persists all information to localStorage
     private _persistLocalStorage(): void {
+        if (!window.localStorage) return;
         let toStore: any = {};
         for (let key of this._storageKeys) {
             if ((<any>this)[key]) {
@@ -333,7 +347,7 @@ export class WkApi implements IWkApi {
     private _clearLocalStorage(): void {
         window.localStorage[this._apiKey] = null;
     }
-    
+
     // Returns if the supplied cache item is still valid
     // based on the current expiry time
     private _isValid(cacheItem: ICache<{}>): boolean {
@@ -343,7 +357,7 @@ export class WkApi implements IWkApi {
         let maxValidity = cacheItem.lastUpdated + this._expiryTime;
         return maxValidity > now;
     }
-    
+
     // Returns the current unix epoch time
     private _getTime(): number {
         return (new Date()).getTime() / 1000;
